@@ -35,7 +35,7 @@ export default function ProfileCreateForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-6">
+    <div className="flex min-h-dvh items-center justify-center bg-slate-50 px-6">
       <div className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-8">
         <h1 className="text-xl font-bold text-slate-900">Nuevo perfil</h1>
         <p className="mt-2 text-sm text-slate-600">

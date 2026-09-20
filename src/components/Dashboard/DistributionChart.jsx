@@ -21,7 +21,7 @@ export default function DistributionChart({ debts }) {
   return (
     <div className="rounded-lg border border-slate-200 p-6">
       <h3 className="text-sm font-semibold text-slate-900">Distribución por acreedor</h3>
-      <div className="mx-auto mt-4 max-w-xs">
+      <div className="relative mx-auto mt-4 w-full max-w-xs">
         <Doughnut data={data} options={{ plugins: { legend: { position: 'bottom' } } }} />
       </div>
     </div>

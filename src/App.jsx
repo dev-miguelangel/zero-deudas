@@ -24,11 +24,11 @@ function AppShell() {
   const extraPayment = Number(extraPaymentInput) || 0
 
   if (!loaded) {
-    return <div className="flex min-h-screen items-center justify-center text-slate-500">Cargando…</div>
+    return <div className="flex min-h-dvh items-center justify-center text-slate-500">Cargando…</div>
   }
 
   return (
-    <div className="min-h-screen bg-white text-slate-900">
+    <div className="min-h-dvh bg-white text-slate-900">
       <Navbar activeTab={activeTab} onChangeTab={setActiveTab} />
       <main className="mx-auto max-w-6xl space-y-6 px-6 py-8">
         {activeTab === 'resumen' && (

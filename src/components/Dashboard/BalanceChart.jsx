@@ -47,7 +47,7 @@ export default function BalanceChart({ debts, strategy, extraPayment }) {
   return (
     <div className="rounded-lg border border-slate-200 p-6">
       <h3 className="text-sm font-semibold text-slate-900">Proyección de saldo</h3>
-      <div className="mt-4">
+      <div className="relative mt-4 w-full">
         <Line data={data} options={options} />
       </div>
     </div>

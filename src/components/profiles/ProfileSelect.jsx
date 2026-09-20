@@ -9,7 +9,7 @@ export default function ProfileSelect() {
   const [confirmingId, setConfirmingId] = useState(null)
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-6 py-12">
+    <div className="flex min-h-dvh flex-col items-center justify-center bg-slate-50 px-6 py-12">
       <h1 className="text-2xl font-bold text-slate-900">¿Quién anda ahí?</h1>
       <p className="mt-2 text-sm text-slate-600">Elige tu perfil para continuar.</p>
 

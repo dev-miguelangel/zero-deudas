@@ -18,7 +18,7 @@ export default function ProfileUnlockForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-6">
+    <div className="flex min-h-dvh items-center justify-center bg-slate-50 px-6">
       <div className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-8 text-center">
         <div className="mx-auto flex h-16 w-16 items-center justify-center overflow-hidden rounded-full">
           <img src={avatar.src} alt={avatar.label} className="h-full w-full object-cover" />
