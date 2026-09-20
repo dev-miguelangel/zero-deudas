@@ -18,7 +18,7 @@ export default function HelpTip({ text }) {
       {open && (
         <span
           role="tooltip"
-          className="absolute left-1/2 top-6 z-20 w-56 -translate-x-1/2 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-relaxed text-slate-600 shadow-lg"
+          className="absolute left-1/2 top-6 z-20 w-56 max-w-[85vw] -translate-x-1/2 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-relaxed text-slate-600 shadow-lg"
         >
           {text}
         </span>
