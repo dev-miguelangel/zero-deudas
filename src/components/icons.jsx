@@ -1,0 +1,185 @@
+const base = {
+  width: 24,
+  height: 24,
+  viewBox: '0 0 24 24',
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 1.5,
+  strokeLinecap: 'round',
+  strokeLinejoin: 'round',
+}
+
+export function ListIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M9 6h11M9 12h11M9 18h11" />
+      <path d="M4 6h.01M4 12h.01M4 18h.01" />
+    </svg>
+  )
+}
+
+export function BoltIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M13 3 4 14h7l-1 7 9-11h-7l1-7Z" />
+    </svg>
+  )
+}
+
+export function ChartBarIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M3 21h18" />
+      <path d="M6 21v-6M12 21V9M18 21v-11" />
+    </svg>
+  )
+}
+
+export function TableIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="3" y="4" width="18" height="16" rx="1" />
+      <path d="M3 10h18M9 4v16" />
+    </svg>
+  )
+}
+
+export function TargetIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="12" r="5" />
+      <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
+export function LockIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="5" y="11" width="14" height="9" rx="2" />
+      <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+    </svg>
+  )
+}
+
+export function SnowballIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="5" cy="19" r="2" />
+      <circle cx="12.5" cy="14.5" r="3.5" />
+      <circle cx="19" cy="7" r="5" />
+    </svg>
+  )
+}
+
+export function AvalancheIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M3 20 9 8l4 6 3-4 5 10Z" />
+    </svg>
+  )
+}
+
+export function PlusIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  )
+}
+
+export function PencilIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M16.5 4.5a2.1 2.1 0 0 1 3 3L7 20l-4 1 1-4Z" />
+    </svg>
+  )
+}
+
+export function TrashIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-9 0 1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12" />
+    </svg>
+  )
+}
+
+export function InfoIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 11v5" />
+      <path d="M12 8h.01" />
+    </svg>
+  )
+}
+
+export function BookIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5v-15Z" />
+      <path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20" />
+    </svg>
+  )
+}
+
+export function CatIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="13" r="7" />
+      <path d="M6.5 8 5 3l4.5 3.5" />
+      <path d="M17.5 8 19 3l-4.5 3.5" />
+      <path d="M9.5 13h.01M14.5 13h.01" />
+      <path d="M12 15.5v1" />
+    </svg>
+  )
+}
+
+export function DogIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="13" r="7" />
+      <path d="M6 9c-2 1-3 4-2 7" />
+      <path d="M18 9c2 1 3 4 2 7" />
+      <path d="M9.5 13h.01M14.5 13h.01" />
+      <path d="M12 15.5v1" />
+    </svg>
+  )
+}
+
+export function RabbitIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="14" r="6" />
+      <path d="M9 9C8.3 5 8.5 2 9.7 2S11 5 10.3 9" />
+      <path d="M15 9C15.7 5 15.5 2 14.3 2S13 5 13.7 9" />
+      <path d="M9.5 14h.01M14.5 14h.01" />
+      <path d="M12 16v1" />
+    </svg>
+  )
+}
+
+export function BearIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="13" r="7" />
+      <circle cx="7" cy="6" r="2" />
+      <circle cx="17" cy="6" r="2" />
+      <path d="M9.5 12h.01M14.5 12h.01" />
+      <circle cx="12" cy="16" r="1.5" />
+    </svg>
+  )
+}
+
+export function OwlIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="13" r="7" />
+      <circle cx="9" cy="12" r="2" />
+      <circle cx="15" cy="12" r="2" />
+      <path d="M9 6 7.5 3M15 6l1.5-3" />
+      <path d="M12 15l-1.2 2h2.4Z" />
+    </svg>
+  )
+}
