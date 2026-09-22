@@ -1,20 +1,15 @@
-import { describeSimulationError, simulate } from '../../domain/simulator'
+import { useIndicadores } from '../../context/IndicadoresContext'
+import { isHipotecario, toCLPEquivalent } from '../../domain/debts'
+import { simulate } from '../../domain/simulator'
 import { formatCurrency, formatMonths } from '../../lib/format'
-import HelpTip from '../HelpTip'
+import { debtTypeIcon, debtTypeLabel } from '../debtTypes'
 import { TargetIcon } from '../icons'
 
-const strategyLabels = { snowball: 'Bola de Nieve', avalanche: 'Avalancha' }
+const TYPE_ORDER = ['hipotecario', 'consumo', 'otro']
 
-const cardHelp = {
-  'Deuda total': 'La suma de los saldos pendientes de todas tus deudas hoy.',
-  'Tiempo restante':
-    'Cuántos meses faltan para llegar a $0, con la estrategia y el abono adicional elegidos.',
-  'Ahorro en intereses':
-    'Cuánto interés te ahorras por poner un abono adicional, comparado con pagar solo el mínimo.',
-  Estrategia: 'El método que estás usando para decidir a qué deuda va tu abono adicional.',
-}
+export default function Summary({ debts }) {
+  const { data: indicadores } = useIndicadores()
 
-export default function Summary({ debts, strategy, extraPayment }) {
   if (debts.length === 0) {
     return (
       <div className="rounded-lg border border-slate-200 p-6 text-sm text-slate-600">
@@ -23,32 +18,29 @@ export default function Summary({ debts, strategy, extraPayment }) {
     )
   }
 
-  const totalDebt = debts.reduce((sum, d) => sum + d.saldo, 0)
-  const withExtra = simulate(debts, strategy, extraPayment)
-  const baseline = simulate(debts, strategy, 0)
+  const ufValue = indicadores?.uf?.valor ?? null
 
-  if (withExtra.error) {
-    return (
-      <div className="rounded-lg border border-slate-200 p-6">
-        <h2 className="text-lg font-semibold text-slate-900">Resumen</h2>
-        <p className="mt-2 text-sm text-red-600">
-          {describeSimulationError(withExtra.error, debts)}
-        </p>
-      </div>
-    )
-  }
+  const rows = TYPE_ORDER.map((tipo) => {
+    const typeDebts = debts.filter((d) => d.tipo === tipo)
+    if (typeDebts.length === 0) return null
 
-  const ahorro = baseline.error ? null : baseline.totalInterest - withExtra.totalInterest
+    const pendingUF = typeDebts.some((d) => isHipotecario(d) && !ufValue)
+    const countedDebts = typeDebts
+      .filter((d) => !isHipotecario(d) || ufValue)
+      .map((d) => toCLPEquivalent(d, ufValue))
 
-  const cards = [
-    { label: 'Deuda total', value: formatCurrency(totalDebt) },
-    { label: 'Tiempo restante', value: formatMonths(withExtra.months) },
-    {
-      label: 'Ahorro en intereses',
-      value: ahorro == null ? '—' : formatCurrency(ahorro),
-    },
-    { label: 'Estrategia', value: strategyLabels[strategy] },
-  ]
+    const subtotal = countedDebts.reduce((sum, d) => sum + d.saldo, 0)
+    const results = typeDebts.map((d) => simulate(d))
+    const errored = results.find((r) => r.error)
+    const months = errored ? null : Math.max(...results.map((r) => r.months))
+
+    return {
+      tipo,
+      pendingUF,
+      subtotalValue: pendingUF ? 'Cargando UF…' : formatCurrency(subtotal),
+      monthsValue: errored ? '—' : formatMonths(months),
+    }
+  }).filter(Boolean)
 
   return (
     <div className="rounded-lg border border-slate-200 p-6">
@@ -56,16 +48,38 @@ export default function Summary({ debts, strategy, extraPayment }) {
         <TargetIcon className="h-5 w-5 text-slate-900" />
         <h2 className="text-lg font-semibold text-slate-900">Resumen</h2>
       </div>
-      <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        {cards.map((card) => (
-          <div key={card.label} className="rounded-md bg-slate-50 p-4">
-            <p className="flex items-center text-xs text-slate-500">
-              {card.label}
-              {cardHelp[card.label] && <HelpTip text={cardHelp[card.label]} />}
-            </p>
-            <p className="mt-1 text-xl font-bold text-slate-900">{card.value}</p>
-          </div>
-        ))}
+      <div
+        className={`mt-4 grid gap-4 ${
+          rows.length >= 3
+            ? 'sm:grid-cols-2 lg:grid-cols-3'
+            : rows.length === 2
+              ? 'sm:grid-cols-2'
+              : ''
+        }`}
+      >
+        {rows.map((row) => {
+          const Icon = debtTypeIcon(row.tipo)
+          return (
+            <div key={row.tipo} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <div className="flex items-center gap-2">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-slate-600">
+                  <Icon className="h-4 w-4" />
+                </span>
+                <span className="font-medium text-slate-900">{debtTypeLabel(row.tipo)}</span>
+              </div>
+              <div className="mt-3 flex gap-6">
+                <div>
+                  <p className="text-xs text-slate-500">Deuda total</p>
+                  <p className="mt-0.5 text-lg font-bold text-slate-900">{row.subtotalValue}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500">Tiempo restante</p>
+                  <p className="mt-0.5 text-lg font-bold text-slate-900">{row.monthsValue}</p>
+                </div>
+              </div>
+            </div>
+          )
+        })}
       </div>
     </div>
   )

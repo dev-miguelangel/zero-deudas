@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
-import { createDebt } from '../domain/debts'
+import { createDebt, migrateDebt } from '../domain/debts'
 import { createSecureStorage } from '../lib/secureStorage'
 import { useVault } from './VaultContext'
 
@@ -17,10 +17,12 @@ export function DebtsProvider({ children }) {
   useEffect(() => {
     let cancelled = false
     storage.getItem('debts', []).then((stored) => {
-      if (!cancelled) {
-        setDebts(stored)
-        setLoaded(true)
-      }
+      if (cancelled) return
+      const migrated = stored.map(migrateDebt)
+      setDebts(migrated)
+      setLoaded(true)
+      const needsPersist = migrated.some((debt, i) => debt !== stored[i])
+      if (needsPersist) storage.setItem('debts', migrated)
     })
     return () => {
       cancelled = true

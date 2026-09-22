@@ -9,6 +9,66 @@ const base = {
   strokeLinejoin: 'round',
 }
 
+export function ChevronLeftIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M15 6 9 12l6 6" />
+    </svg>
+  )
+}
+
+export function ChevronRightIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M9 6l6 6-6 6" />
+    </svg>
+  )
+}
+
+export function CheckIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4 12.5 9.5 18 20 6" />
+    </svg>
+  )
+}
+
+export function CheckCircleIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M8 12.5 11 15.5 16 9" />
+    </svg>
+  )
+}
+
+export function CardIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="3" y="6" width="18" height="12" rx="2" />
+      <path d="M3 10h18" />
+    </svg>
+  )
+}
+
+export function HomeIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4 11 12 4l8 7" />
+      <path d="M6 10v9h12v-9" />
+    </svg>
+  )
+}
+
+export function ReceiptIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M6 3h12v18l-2-1.5-2 1.5-2-1.5-2 1.5-2-1.5-2 1.5Z" />
+      <path d="M9 8h6M9 12h6" />
+    </svg>
+  )
+}
+
 export function ListIcon(props) {
   return (
     <svg {...base} {...props}>
@@ -59,24 +119,6 @@ export function LockIcon(props) {
     <svg {...base} {...props}>
       <rect x="5" y="11" width="14" height="9" rx="2" />
       <path d="M8 11V7a4 4 0 0 1 8 0v4" />
-    </svg>
-  )
-}
-
-export function SnowballIcon(props) {
-  return (
-    <svg {...base} {...props}>
-      <circle cx="5" cy="19" r="2" />
-      <circle cx="12.5" cy="14.5" r="3.5" />
-      <circle cx="19" cy="7" r="5" />
-    </svg>
-  )
-}
-
-export function AvalancheIcon(props) {
-  return (
-    <svg {...base} {...props}>
-      <path d="M3 20 9 8l4 6 3-4 5 10Z" />
     </svg>
   )
 }

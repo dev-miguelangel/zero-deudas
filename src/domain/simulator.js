@@ -1,89 +1,52 @@
-export function sortSnowball(debts) {
-  return [...debts].sort((a, b) => a.saldo - b.saldo)
-}
-
-export function sortAvalanche(debts) {
-  return [...debts].sort((a, b) => b.tasaInteresAnual - a.tasaInteresAnual)
-}
-
 function monthlyRateOf(debt) {
   return debt.tasaInteresAnual / 100 / 12
 }
 
 /**
- * Simula el pago de un conjunto de deudas mes a mes bajo una estrategia dada.
- * @param {import('./debts').Debt[]} debts
- * @param {'snowball' | 'avalanche'} strategy
- * @param {number} extraPayment - abono adicional mensual, se aplica en cascada
- *   siguiendo el orden de la estrategia una vez cubiertos todos los pagos mínimos.
+ * Calcula la amortización mes a mes de una deuda individual, pagando su
+ * propio pago mínimo (cuota fija) hasta llegar a saldo $0.
+ * @param {import('./debts').Debt} debt
  * @param {{ maxMonths?: number }} [options]
  */
-export function simulate(debts, strategy, extraPayment = 0, { maxMonths = 600 } = {}) {
-  if (debts.length === 0) {
-    return { months: 0, totalInterest: 0, timeline: [], amortization: [], error: null }
-  }
+export function simulate(debt, { maxMonths = 600 } = {}) {
+  const rate = monthlyRateOf(debt)
 
-  const order = strategy === 'avalanche' ? sortAvalanche(debts) : sortSnowball(debts)
-  const balances = order.map((d) => ({ ...d, saldo: Number(d.saldo) }))
-
-  const stuck = balances.find((d) => d.pagoMinimo <= d.saldo * monthlyRateOf(d))
-  if (stuck) {
+  if (debt.pagoMinimo <= debt.saldo * rate) {
     return {
       months: null,
       totalInterest: null,
       timeline: [],
       amortization: [],
-      error: { code: 'MIN_PAYMENT_TOO_LOW', debtId: stuck.id },
+      error: { code: 'MIN_PAYMENT_TOO_LOW', debtId: debt.id },
     }
   }
 
+  let saldo = Number(debt.saldo)
   const timeline = []
   const amortization = []
   let totalInterest = 0
   let month = 0
 
-  while (balances.some((d) => d.saldo > 0.01) && month < maxMonths) {
+  while (saldo > 0.01 && month < maxMonths) {
     month += 1
-    let extraAvailable = extraPayment
+    const interest = saldo * rate
+    const payment = Math.min(debt.pagoMinimo, saldo + interest)
+    const principal = payment - interest
+    saldo = Math.max(0, saldo - principal)
+    totalInterest += interest
 
-    for (const debt of balances) {
-      if (debt.saldo <= 0) continue
-      const interest = debt.saldo * monthlyRateOf(debt)
-      const payment = Math.min(debt.pagoMinimo, debt.saldo + interest)
-      const principal = payment - interest
-      debt.saldo = Math.max(0, debt.saldo - principal)
-      totalInterest += interest
-      amortization.push({
-        month,
-        debtId: debt.id,
-        acreedor: debt.acreedor,
-        interest,
-        principal,
-        balance: debt.saldo,
-      })
-    }
-
-    for (const debt of balances) {
-      if (extraAvailable <= 0) break
-      if (debt.saldo <= 0) continue
-      const applied = Math.min(extraAvailable, debt.saldo)
-      debt.saldo -= applied
-      extraAvailable -= applied
-      const row = amortization.find((r) => r.month === month && r.debtId === debt.id)
-      if (row) {
-        row.principal += applied
-        row.balance = debt.saldo
-      }
-    }
-
-    timeline.push({
+    amortization.push({
       month,
-      totalBalance: balances.reduce((sum, d) => sum + d.saldo, 0),
+      debtId: debt.id,
+      acreedor: debt.acreedor,
+      interest,
+      principal,
+      balance: saldo,
     })
+    timeline.push({ month, totalBalance: saldo })
   }
 
-  const unpaid = balances.some((d) => d.saldo > 0.01)
-  if (unpaid) {
+  if (saldo > 0.01) {
     return {
       months: null,
       totalInterest: null,
@@ -96,21 +59,13 @@ export function simulate(debts, strategy, extraPayment = 0, { maxMonths = 600 } 
   return { months: month, totalInterest, timeline, amortization, error: null }
 }
 
-export function describeSimulationError(error, debts) {
+export function describeSimulationError(error, debt) {
   if (!error) return null
   if (error.code === 'MIN_PAYMENT_TOO_LOW') {
-    const debt = debts.find((d) => d.id === error.debtId)
-    return `El pago mínimo de "${debt?.acreedor ?? 'una deuda'}" no cubre su interés mensual: el saldo nunca bajaría. Sube el pago mínimo o el abono adicional.`
+    return `El pago mínimo de "${debt?.acreedor ?? 'esta deuda'}" no cubre su interés mensual: el saldo nunca bajaría. Sube el pago mínimo.`
   }
   if (error.code === 'EXCEEDS_MAX_TERM') {
-    return 'Con estos valores, la deuda no se liquida en un plazo razonable (50 años). Sube el abono adicional.'
+    return 'Con estos valores, la deuda no se liquida en un plazo razonable (50 años).'
   }
   return 'No se pudo calcular la simulación.'
-}
-
-export function compareStrategies(debts, extraPayment = 0, options) {
-  return {
-    snowball: simulate(debts, 'snowball', extraPayment, options),
-    avalanche: simulate(debts, 'avalanche', extraPayment, options),
-  }
 }

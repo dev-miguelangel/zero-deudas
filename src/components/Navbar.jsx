@@ -1,12 +1,11 @@
 import { useState } from 'react'
 import { useVault } from '../context/VaultContext'
 import { CloseIcon, LockIcon, MenuIcon } from './icons'
+import IndicatorsBar from './IndicatorsBar'
 
 const tabs = [
-  { id: 'resumen', label: 'Resumen' },
   { id: 'deudas', label: 'Deudas' },
-  { id: 'simulacion', label: 'Simulación' },
-  { id: 'amortizacion', label: 'Amortización' },
+  { id: 'pagos', label: 'Pagos' },
   { id: 'aprende', label: 'Aprende' },
 ]
 
@@ -76,6 +75,8 @@ export default function Navbar({ activeTab, onChangeTab }) {
         </button>
       </nav>
 
+      <IndicatorsBar />
+
       {menuOpen && (
         <div className="sm:hidden">
           <button
@@ -83,7 +84,7 @@ export default function Navbar({ activeTab, onChangeTab }) {
             aria-label="Cerrar menú"
             onClick={() => setMenuOpen(false)}
             className="fixed inset-x-0 bottom-0 z-40 bg-black/20"
-            style={{ top: 'calc(64px + env(safe-area-inset-top, 0px))' }}
+            style={{ top: 'calc(96px + env(safe-area-inset-top, 0px))' }}
           />
           <div className="absolute inset-x-0 top-full z-50 border-b border-slate-200 bg-white shadow-lg">
             <div className="flex flex-col divide-y divide-slate-100 px-4">

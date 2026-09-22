@@ -1,9 +1,17 @@
 import { useState } from 'react'
-import { validateDebt } from '../../domain/debts'
+import { DEBT_TYPES, validateDebt } from '../../domain/debts'
+import { debtTypeIcon } from '../debtTypes'
 import HelpTip from '../HelpTip'
 import NumericInput from '../NumericInput'
+import RateCalculator from './RateCalculator'
 
-const emptyForm = { acreedor: '', saldo: '', tasaInteresAnual: '', pagoMinimo: '' }
+const emptyForm = {
+  acreedor: '',
+  tipo: 'consumo',
+  saldo: '',
+  tasaInteresAnual: '',
+  pagoMinimo: '',
+}
 
 const helpText = {
   tasaInteresAnual:
@@ -15,6 +23,9 @@ const helpText = {
 export default function DebtFormModal({ initialValue, onClose, onSubmit }) {
   const [form, setForm] = useState(initialValue ?? emptyForm)
   const [errors, setErrors] = useState({})
+
+  const esHipotecario = form.tipo === 'hipotecario'
+  const unidad = esHipotecario ? 'UF' : 'CLP'
 
   function handleChange(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -32,9 +43,9 @@ export default function DebtFormModal({ initialValue, onClose, onSubmit }) {
 
   const fields = [
     { name: 'acreedor', label: 'Acreedor', numeric: false },
-    { name: 'saldo', label: 'Saldo (CLP)', numeric: true },
+    { name: 'saldo', label: `Saldo (${unidad})`, numeric: true },
     { name: 'tasaInteresAnual', label: 'Tasa de interés anual (%)', numeric: true },
-    { name: 'pagoMinimo', label: 'Pago mínimo (CLP)', numeric: true },
+    { name: 'pagoMinimo', label: `Pago mínimo (${unidad})`, numeric: true },
   ]
 
   return (
@@ -44,6 +55,37 @@ export default function DebtFormModal({ initialValue, onClose, onSubmit }) {
           {initialValue ? 'Editar deuda' : 'Nueva deuda'}
         </h2>
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+          <div>
+            <p className="text-sm font-medium text-slate-700">Tipo de crédito</p>
+            <div className="mt-1 grid grid-cols-3 gap-2">
+              {DEBT_TYPES.map((type) => {
+                const Icon = debtTypeIcon(type.id)
+                return (
+                  <button
+                    key={type.id}
+                    type="button"
+                    onClick={() => handleChange('tipo', type.id)}
+                    className={`flex flex-col items-center gap-1 rounded-md border px-2 py-2 text-xs font-medium ${
+                      form.tipo === type.id
+                        ? 'border-slate-900 bg-slate-50 text-slate-900'
+                        : 'border-slate-300 text-slate-600'
+                    }`}
+                  >
+                    <Icon className="h-5 w-5" />
+                    {type.label}
+                  </button>
+                )
+              })}
+            </div>
+            {esHipotecario && (
+              <p className="mt-1 text-xs text-slate-500">
+                El saldo y la cuota se ingresan en UF, y se convierten a pesos con el
+                valor de la UF del día.
+              </p>
+            )}
+            {errors.tipo && <p className="mt-1 text-xs text-red-600">{errors.tipo}</p>}
+          </div>
+
           {fields.map((field) => (
             <div key={field.name}>
               <label
@@ -71,6 +113,11 @@ export default function DebtFormModal({ initialValue, onClose, onSubmit }) {
               )}
               {errors[field.name] && (
                 <p className="mt-1 text-xs text-red-600">{errors[field.name]}</p>
+              )}
+              {field.name === 'tasaInteresAnual' && (
+                <RateCalculator
+                  onApply={(value) => handleChange('tasaInteresAnual', value)}
+                />
               )}
             </div>
           ))}
