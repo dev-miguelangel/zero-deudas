@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { useIndicadores } from '../../context/IndicadoresContext'
 import { useDebts } from '../../context/DebtsContext'
+import { useVault } from '../../context/VaultContext'
+import ConfirmPassphraseModal from '../ConfirmPassphraseModal'
 import { debtTypeIcon } from '../debtTypes'
-import { DEBT_TYPES, isHipotecario } from '../../domain/debts'
+import { DEBT_TYPES, debtCalculatedSummary, isHipotecario } from '../../domain/debts'
 import { describeSimulationError, simulate } from '../../domain/simulator'
 import { formatCurrency, formatMonthsShort, formatUF } from '../../lib/format'
 import { PencilIcon, PlusIcon, TrashIcon } from '../icons'
@@ -11,8 +13,10 @@ import DebtFormModal from './DebtFormModal'
 export default function DebtList() {
   const { debts, addDebt, updateDebt, removeDebt } = useDebts()
   const { data: indicadores } = useIndicadores()
+  const { verifyPassphrase } = useVault()
   const [editing, setEditing] = useState(null)
   const [creating, setCreating] = useState(false)
+  const [deleting, setDeleting] = useState(null)
   const [filterTipo, setFilterTipo] = useState('todos')
 
   const ufValue = indicadores?.uf?.valor ?? null
@@ -90,10 +94,17 @@ export default function DebtList() {
                   {typeDebts.map((debt) => {
                     const payoff = simulate(debt)
                     const hipotecario = isHipotecario(debt)
+                    const summary = debtCalculatedSummary(debt)
+                    const formatAmount = hipotecario ? formatUF : formatCurrency
                     return (
                       <div key={debt.id} className="rounded-lg border border-slate-200 p-4">
                         <div className="flex items-start justify-between">
-                          <h4 className="font-semibold text-slate-900">{debt.acreedor}</h4>
+                          <div>
+                            <h4 className="font-semibold text-slate-900">{debt.acreedor}</h4>
+                            {debt.alias && (
+                              <p className="text-xs text-slate-400">{debt.alias}</p>
+                            )}
+                          </div>
                           <div className="flex gap-2">
                             <button
                               type="button"
@@ -106,7 +117,7 @@ export default function DebtList() {
                             <button
                               type="button"
                               aria-label="Eliminar"
-                              onClick={() => removeDebt(debt.id)}
+                              onClick={() => setDeleting(debt)}
                               className="text-slate-500 hover:text-red-600"
                             >
                               <TrashIcon className="h-4 w-4" />
@@ -114,47 +125,51 @@ export default function DebtList() {
                           </div>
                         </div>
 
-                        {hipotecario ? (
-                          <>
-                            <p className="mt-2 text-xl font-bold text-slate-900">
-                              {formatUF(debt.saldo)}
-                            </p>
-                            <p className="text-xs text-slate-500">
+                        <div className="mt-3 rounded-md border border-slate-200 bg-slate-50 p-3">
+                          <p className="text-xs font-semibold text-slate-700">
+                            Con esos datos, calculamos:
+                          </p>
+                          <dl className="mt-2 grid grid-cols-2 gap-y-2 text-xs">
+                            <dt className="text-slate-500">Tasa real</dt>
+                            <dd className="text-right font-semibold text-slate-900">
+                              {summary.tasaDisponible
+                                ? `${summary.tasaInteresAnual}% anual`
+                                : `${summary.tasaInteresAnual}% (sin monto original)`}
+                            </dd>
+                            <dt className="text-slate-500">Monto total a pagar</dt>
+                            <dd className="text-right font-semibold text-slate-900">
+                              {summary.montoTotalAPagar != null
+                                ? formatAmount(summary.montoTotalAPagar)
+                                : '—'}
+                            </dd>
+                            <dt className="text-slate-500">Saldo</dt>
+                            <dd className="text-right font-semibold text-slate-900">
+                              {formatAmount(summary.saldo)}
+                            </dd>
+                            <dt className="text-slate-500">Tiempo restante</dt>
+                            <dd className="text-right font-semibold text-slate-900">
+                              {payoff.error ? '—' : formatMonthsShort(payoff.months)}
+                            </dd>
+                          </dl>
+                          {hipotecario && (
+                            <p className="mt-2 text-xs text-slate-400">
                               {ufValue
-                                ? `≈ ${formatCurrency(debt.saldo * ufValue)}`
-                                : 'Cargando UF…'}
+                                ? `Saldo ≈ ${formatCurrency(summary.saldo * ufValue)} en pesos`
+                                : 'Cargando valor de la UF…'}
                             </p>
-                            <p className="mt-1 text-sm text-slate-600">
-                              Tasa: {debt.tasaInteresAnual}% anual · Pago mínimo:{' '}
-                              {formatUF(debt.pagoMinimo)}
-                            </p>
-                          </>
-                        ) : (
-                          <>
-                            <p className="mt-2 text-xl font-bold text-slate-900">
-                              {formatCurrency(debt.saldo)}
-                            </p>
-                            <p className="mt-1 text-sm text-slate-600">
-                              Tasa: {debt.tasaInteresAnual}% anual · Pago mínimo:{' '}
-                              {formatCurrency(debt.pagoMinimo)}
-                            </p>
-                          </>
-                        )}
-
-                        <p className="mt-1 text-sm text-slate-600">
-                          {payoff.error ? (
-                            <span className="text-red-600">
-                              {describeSimulationError(payoff.error, debt)}
-                            </span>
-                          ) : (
-                            <>
-                              <span className="block">Cuotas restantes: {payoff.months}</span>
-                              <span className="block">
-                                Tiempo restante: {formatMonthsShort(payoff.months)}
-                              </span>
-                            </>
                           )}
-                        </p>
+                          {!summary.tasaDisponible && (
+                            <p className="mt-2 text-xs text-slate-500">
+                              Sin el monto original no se puede calcular la tasa real: se usa
+                              0% y el saldo es solo cuotas que faltan × valor de la cuota.
+                            </p>
+                          )}
+                          {payoff.error && (
+                            <p className="mt-2 text-xs text-red-600">
+                              {describeSimulationError(payoff.error, debt)}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     )
                   })}
@@ -183,6 +198,22 @@ export default function DebtList() {
             updateDebt(editing.id, values)
             setEditing(null)
           }}
+        />
+      )}
+
+      {deleting && (
+        <ConfirmPassphraseModal
+          message={
+            <>
+              Esto borra permanentemente la deuda con <strong>{deleting.acreedor}</strong>
+              {deleting.alias ? ` (${deleting.alias})` : ''} y su historial de pagos. No se
+              puede deshacer.
+            </>
+          }
+          confirmLabel="Eliminar deuda"
+          verify={verifyPassphrase}
+          onConfirm={() => removeDebt(deleting.id)}
+          onClose={() => setDeleting(null)}
         />
       )}
     </section>

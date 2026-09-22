@@ -294,3 +294,35 @@ export function OwlIcon(props) {
     </svg>
   )
 }
+
+export function MoneyBagIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M11 6V4.5a1 1 0 0 1 2 0V6" />
+      <path d="M9.5 6C6.5 9 5 12 5 15a7 7 0 0 0 14 0c0-3-1.5-6-4.5-9Z" />
+      <path d="M12 10.5v7" />
+      <path d="M10.3 12.7h3.4M10.3 15.3h3.4" />
+    </svg>
+  )
+}
+
+export function ExclamationIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M12 4 21 19H3Z" />
+      <path d="M12 10v4" />
+      <path d="M12 16.2h.01" />
+    </svg>
+  )
+}
+
+export function DuckIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="11" cy="15" r="6" />
+      <circle cx="15" cy="8" r="4" />
+      <path d="M18.5 8.5c1.5 0 2.5.7 2.5 1.6s-1 1.4-2.2 1.2" />
+      <circle cx="16.3" cy="6.8" r=".01" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  )
+}

@@ -5,7 +5,7 @@ import { formatCurrency, formatMonths } from '../../lib/format'
 import { debtTypeIcon, debtTypeLabel } from '../debtTypes'
 import { TargetIcon } from '../icons'
 
-const TYPE_ORDER = ['hipotecario', 'consumo', 'otro']
+const TYPE_ORDER = ['CH', 'CC', 'TC', 'LC', 'OT']
 
 export default function Summary({ debts }) {
   const { data: indicadores } = useIndicadores()

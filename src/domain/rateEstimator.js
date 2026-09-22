@@ -44,3 +44,43 @@ export function estimateAnnualRate({ montoCredito, montoCuota, numCuotas }) {
   const monthlyRate = (lo + hi) / 2
   return { annualRate: monthlyRate * 12 * 100, error: null }
 }
+
+/**
+ * Estima el saldo pendiente de un crédito en cuotas fijas a partir de lo
+ * que normalmente es fácil de saber (monto original de la compra, valor de
+ * la cuota, número de cuotas totales) y cuántas cuotas ya se pagaron — sin
+ * necesitar saber la tasa ni el saldo actual. Pensado para tarjetas de
+ * crédito, donde el saldo pendiente no siempre es fácil de ver, pero la
+ * compra original y las cuotas sí.
+ */
+export function estimateBalanceAfterInstallments({ montoCredito, montoCuota, numCuotas, cuotasPagadas }) {
+  const { annualRate, error } = estimateAnnualRate({ montoCredito, montoCuota, numCuotas })
+  if (error) return { saldo: null, annualRate: null, error }
+
+  const total = Number(numCuotas)
+  const paid = Math.floor(Number(cuotasPagadas))
+  if (!(paid >= 0)) {
+    return { saldo: null, annualRate: null, error: 'Las cuotas ya pagadas no pueden ser negativas.' }
+  }
+  if (paid > total) {
+    return {
+      saldo: null,
+      annualRate: null,
+      error: 'No puedes haber pagado más cuotas que el total de cuotas.',
+    }
+  }
+
+  const installmentAmount = Number(montoCuota)
+  const monthlyRate = annualRate / 100 / 12
+  let saldo = Number(montoCredito)
+
+  for (let i = 0; i < paid; i += 1) {
+    if (saldo <= 0.01) break
+    const interest = saldo * monthlyRate
+    const payment = Math.min(installmentAmount, saldo + interest)
+    const principalPaid = payment - interest
+    saldo = Math.max(0, saldo - principalPaid)
+  }
+
+  return { saldo, annualRate, error: null }
+}

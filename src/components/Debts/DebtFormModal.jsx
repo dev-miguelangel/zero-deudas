@@ -1,30 +1,49 @@
 import { useState } from 'react'
-import { DEBT_TYPES, validateDebt } from '../../domain/debts'
+import { DEBT_TYPES, computeDerivedFields, validateDebt } from '../../domain/debts'
 import { debtTypeIcon } from '../debtTypes'
 import HelpTip from '../HelpTip'
 import NumericInput from '../NumericInput'
-import RateCalculator from './RateCalculator'
 
 const emptyForm = {
   acreedor: '',
-  tipo: 'consumo',
-  saldo: '',
-  tasaInteresAnual: '',
-  pagoMinimo: '',
+  tipo: 'CC',
+  alias: '',
+  montoOriginal: '',
+  cantidadCuotas: '',
+  valorCuota: '',
+  cuotasPagadas: '',
 }
 
 const helpText = {
-  tasaInteresAnual:
-    'El % que cobra el acreedor por prestarte dinero durante un año. Aparece en tu cartola o contrato. La tasa mensual es este valor dividido en 12.',
-  pagoMinimo:
-    'Lo mínimo que exige el acreedor cada mes. Si solo pagas esto, gran parte se va en interés y el saldo baja lento.',
+  montoOriginal:
+    'Lo que pediste prestado o el valor de la compra original. Es opcional, pero sin él no se puede calcular la tasa real — el saldo se estimará de forma simple (cuotas que faltan × valor de la cuota).',
+  cantidadCuotas: 'El número total de cuotas del crédito, de principio a fin.',
+  valorCuota: 'El valor fijo que pagas cada mes por esta deuda.',
+  cuotasPagadas: 'Cuántas de esas cuotas ya pagaste hasta hoy. Pon 0 si ninguna.',
+}
+
+function formatNumber(value, decimals = 2) {
+  if (value == null || !Number.isFinite(value)) return '—'
+  return value.toLocaleString('es-CL', { maximumFractionDigits: decimals })
 }
 
 export default function DebtFormModal({ initialValue, onClose, onSubmit }) {
-  const [form, setForm] = useState(initialValue ?? emptyForm)
+  const [form, setForm] = useState(() =>
+    initialValue
+      ? {
+          acreedor: initialValue.acreedor ?? '',
+          tipo: initialValue.tipo ?? 'CC',
+          alias: initialValue.alias ?? '',
+          montoOriginal: initialValue.montoOriginal != null ? String(initialValue.montoOriginal) : '',
+          cantidadCuotas: initialValue.cantidadCuotas != null ? String(initialValue.cantidadCuotas) : '',
+          valorCuota: initialValue.valorCuota != null ? String(initialValue.valorCuota) : '',
+          cuotasPagadas: initialValue.cuotasPagadas != null ? String(initialValue.cuotasPagadas) : '',
+        }
+      : emptyForm,
+  )
   const [errors, setErrors] = useState({})
 
-  const esHipotecario = form.tipo === 'hipotecario'
+  const esHipotecario = form.tipo === 'CH'
   const unidad = esHipotecario ? 'UF' : 'CLP'
 
   function handleChange(field, value) {
@@ -41,12 +60,7 @@ export default function DebtFormModal({ initialValue, onClose, onSubmit }) {
     onSubmit(form)
   }
 
-  const fields = [
-    { name: 'acreedor', label: 'Acreedor', numeric: false },
-    { name: 'saldo', label: `Saldo (${unidad})`, numeric: true },
-    { name: 'tasaInteresAnual', label: 'Tasa de interés anual (%)', numeric: true },
-    { name: 'pagoMinimo', label: `Pago mínimo (${unidad})`, numeric: true },
-  ]
+  const derived = computeDerivedFields(form)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/40 px-4 py-8 sm:px-6">
@@ -57,7 +71,7 @@ export default function DebtFormModal({ initialValue, onClose, onSubmit }) {
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div>
             <p className="text-sm font-medium text-slate-700">Tipo de crédito</p>
-            <div className="mt-1 grid grid-cols-3 gap-2">
+            <div className="mt-1 grid grid-cols-2 gap-2 sm:grid-cols-3">
               {DEBT_TYPES.map((type) => {
                 const Icon = debtTypeIcon(type.id)
                 return (
@@ -79,48 +93,148 @@ export default function DebtFormModal({ initialValue, onClose, onSubmit }) {
             </div>
             {esHipotecario && (
               <p className="mt-1 text-xs text-slate-500">
-                El saldo y la cuota se ingresan en UF, y se convierten a pesos con el
-                valor de la UF del día.
+                El monto original y la cuota se ingresan en UF, y se convierten a pesos
+                con el valor de la UF del día.
               </p>
             )}
             {errors.tipo && <p className="mt-1 text-xs text-red-600">{errors.tipo}</p>}
           </div>
 
-          {fields.map((field) => (
-            <div key={field.name}>
+          <div>
+            <label htmlFor="acreedor" className="block text-sm font-medium text-slate-700">
+              Acreedor
+            </label>
+            <input
+              id="acreedor"
+              type="text"
+              value={form.acreedor}
+              onChange={(e) => handleChange('acreedor', e.target.value)}
+              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+            />
+            {errors.acreedor && <p className="mt-1 text-xs text-red-600">{errors.acreedor}</p>}
+          </div>
+
+          <div>
+            <label htmlFor="alias" className="block text-sm font-medium text-slate-700">
+              Alias de la deuda <span className="font-normal text-slate-400">(opcional)</span>
+            </label>
+            <input
+              id="alias"
+              type="text"
+              placeholder="Ej. TV Samsung 55”"
+              value={form.alias}
+              onChange={(e) => handleChange('alias', e.target.value)}
+              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="montoOriginal" className="flex items-center text-sm font-medium text-slate-700">
+              Monto original del crédito ({unidad}){' '}
+              <span className="ml-1 font-normal text-slate-400">(opcional)</span>
+              <HelpTip text={helpText.montoOriginal} />
+            </label>
+            <NumericInput
+              id="montoOriginal"
+              value={form.montoOriginal}
+              onChange={(value) => handleChange('montoOriginal', value)}
+              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+            />
+            {errors.montoOriginal && (
+              <p className="mt-1 text-xs text-red-600">{errors.montoOriginal}</p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
               <label
-                htmlFor={field.name}
+                htmlFor="cantidadCuotas"
                 className="flex items-center text-sm font-medium text-slate-700"
               >
-                {field.label}
-                {helpText[field.name] && <HelpTip text={helpText[field.name]} />}
+                Cantidad de cuotas
+                <HelpTip text={helpText.cantidadCuotas} />
               </label>
-              {field.numeric ? (
-                <NumericInput
-                  id={field.name}
-                  value={form[field.name]}
-                  onChange={(value) => handleChange(field.name, value)}
-                  className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
-                />
-              ) : (
-                <input
-                  id={field.name}
-                  type="text"
-                  value={form[field.name]}
-                  onChange={(e) => handleChange(field.name, e.target.value)}
-                  className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
-                />
-              )}
-              {errors[field.name] && (
-                <p className="mt-1 text-xs text-red-600">{errors[field.name]}</p>
-              )}
-              {field.name === 'tasaInteresAnual' && (
-                <RateCalculator
-                  onApply={(value) => handleChange('tasaInteresAnual', value)}
-                />
+              <NumericInput
+                id="cantidadCuotas"
+                value={form.cantidadCuotas}
+                onChange={(value) => handleChange('cantidadCuotas', value)}
+                className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+              />
+              {errors.cantidadCuotas && (
+                <p className="mt-1 text-xs text-red-600">{errors.cantidadCuotas}</p>
               )}
             </div>
-          ))}
+
+            <div>
+              <label
+                htmlFor="cuotasPagadas"
+                className="flex items-center text-sm font-medium text-slate-700"
+              >
+                Cuotas pagadas
+                <HelpTip text={helpText.cuotasPagadas} />
+              </label>
+              <NumericInput
+                id="cuotasPagadas"
+                value={form.cuotasPagadas}
+                onChange={(value) => handleChange('cuotasPagadas', value)}
+                className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+              />
+              {errors.cuotasPagadas && (
+                <p className="mt-1 text-xs text-red-600">{errors.cuotasPagadas}</p>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="valorCuota" className="flex items-center text-sm font-medium text-slate-700">
+              Valor cuota ({unidad})
+              <HelpTip text={helpText.valorCuota} />
+            </label>
+            <NumericInput
+              id="valorCuota"
+              value={form.valorCuota}
+              onChange={(value) => handleChange('valorCuota', value)}
+              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+            />
+            {errors.valorCuota && <p className="mt-1 text-xs text-red-600">{errors.valorCuota}</p>}
+          </div>
+
+          <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+            <p className="text-xs font-semibold text-slate-700">Con esos datos, calculamos:</p>
+            <dl className="mt-2 grid grid-cols-2 gap-y-2 text-xs">
+              <dt className="text-slate-500">Tasa real</dt>
+              <dd className="text-right font-semibold text-slate-900">
+                {derived.tasaDisponible
+                  ? `${formatNumber(derived.tasaInteresAnual)}% anual`
+                  : derived.tasaInteresAnual === 0
+                    ? '0% (sin monto original)'
+                    : '—'}
+              </dd>
+              <dt className="text-slate-500">Monto total a pagar</dt>
+              <dd className="text-right font-semibold text-slate-900">
+                {derived.montoTotalAPagar != null
+                  ? `${formatNumber(derived.montoTotalAPagar, 0)} ${unidad}`
+                  : '—'}
+              </dd>
+              <dt className="text-slate-500">Saldo</dt>
+              <dd className="text-right font-semibold text-slate-900">
+                {derived.saldo != null ? `${formatNumber(derived.saldo, 0)} ${unidad}` : '—'}
+              </dd>
+              <dt className="text-slate-500">Tiempo restante</dt>
+              <dd className="text-right font-semibold text-slate-900">
+                {derived.cuotasRestantes != null ? `${derived.cuotasRestantes} cuotas` : '—'}
+              </dd>
+            </dl>
+            {!derived.tasaDisponible && form.montoOriginal !== '' && derived.error && (
+              <p className="mt-2 text-xs text-red-600">{derived.error}</p>
+            )}
+            {!derived.tasaDisponible && form.montoOriginal === '' && (
+              <p className="mt-2 text-xs text-slate-500">
+                Sin el monto original no se puede calcular la tasa real: se usa 0% y el
+                saldo es solo cuotas que faltan × valor de la cuota.
+              </p>
+            )}
+          </div>
 
           <div className="flex justify-end gap-2 pt-2">
             <button

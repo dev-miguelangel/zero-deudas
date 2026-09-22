@@ -1,16 +1,18 @@
 import { DEBT_TYPES } from '../domain/debts'
-import { CardIcon, HomeIcon, ReceiptIcon } from './icons'
+import { CardIcon, DuckIcon, ExclamationIcon, HomeIcon, MoneyBagIcon } from './icons'
 
 const ICONS = {
-  consumo: CardIcon,
-  hipotecario: HomeIcon,
-  otro: ReceiptIcon,
+  CC: MoneyBagIcon,
+  CH: HomeIcon,
+  TC: CardIcon,
+  LC: ExclamationIcon,
+  OT: DuckIcon,
 }
 
 export function debtTypeLabel(tipo) {
-  return DEBT_TYPES.find((t) => t.id === tipo)?.label ?? 'Otras cuotas'
+  return DEBT_TYPES.find((t) => t.id === tipo)?.label ?? 'Otras transacciones'
 }
 
 export function debtTypeIcon(tipo) {
-  return ICONS[tipo] ?? ReceiptIcon
+  return ICONS[tipo] ?? DuckIcon
 }

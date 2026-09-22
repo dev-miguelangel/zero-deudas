@@ -26,7 +26,7 @@ export default function HistorialView() {
   }
 
   function clpAmount(row) {
-    if (row.tipo !== 'hipotecario') return row.monto
+    if (row.tipo !== 'CH') return row.monto
     return ufValue ? row.monto * ufValue : null
   }
 
@@ -89,7 +89,7 @@ export default function HistorialView() {
               <div className="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-200">
                 {group.rows.map((row) => {
                   const TypeIcon = debtTypeIcon(row.tipo)
-                  const hipotecario = row.tipo === 'hipotecario'
+                  const hipotecario = row.tipo === 'CH'
                   return (
                     <div
                       key={`${row.debtId}-${row.mes}`}
