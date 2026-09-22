@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useVault } from '../../context/VaultContext'
 import { AVATARS } from '../avatars'
+import AvatarPicker from './AvatarPicker'
 
 export default function ProfileCreateForm() {
   const { createProfile, backToSelect, error, profiles } = useVault()
@@ -60,20 +61,8 @@ export default function ProfileCreateForm() {
 
           <div>
             <p className="block text-sm font-medium text-slate-700">Avatar</p>
-            <div className="mt-2 flex justify-between">
-              {AVATARS.map(({ id, label, src }) => (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => setAvatarId(id)}
-                  aria-label={label}
-                  className={`flex h-12 w-12 items-center justify-center overflow-hidden rounded-full ${
-                    avatarId === id ? 'ring-2 ring-offset-2 ring-slate-900' : ''
-                  }`}
-                >
-                  <img src={src} alt={label} className="h-full w-full object-cover" />
-                </button>
-              ))}
+            <div className="mt-2">
+              <AvatarPicker value={avatarId} onChange={setAvatarId} />
             </div>
           </div>
 

@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import { useVault } from '../context/VaultContext'
+import { getAvatar } from './avatars'
 import ExportDataButton from './ExportDataButton'
-import { CloseIcon, LockIcon, MenuIcon } from './icons'
+import { ChevronDownIcon, CloseIcon, KeyIcon, LockIcon, MenuIcon, UserIcon } from './icons'
 import IndicatorsBar from './IndicatorsBar'
+import ChangeAvatarModal from './profiles/ChangeAvatarModal'
+import ChangePassphraseModal from './profiles/ChangePassphraseModal'
 
 const tabs = [
   { id: 'deudas', label: 'Deudas' },
@@ -13,6 +16,11 @@ const tabs = [
 export default function Navbar({ activeTab, onChangeTab }) {
   const { lock, activeProfile } = useVault()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false)
+  const [changingPassphrase, setChangingPassphrase] = useState(false)
+  const [changingAvatar, setChangingAvatar] = useState(false)
+
+  const avatar = activeProfile && getAvatar(activeProfile.avatarId)
 
   function handleSelectTab(id) {
     onChangeTab(id)
@@ -21,6 +29,7 @@ export default function Navbar({ activeTab, onChangeTab }) {
 
   function handleLock() {
     setMenuOpen(false)
+    setProfileMenuOpen(false)
     lock()
   }
 
@@ -36,7 +45,7 @@ export default function Navbar({ activeTab, onChangeTab }) {
           </span>
           ZeroDeudas
           {activeProfile && (
-            <span className="whitespace-nowrap rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+            <span className="whitespace-nowrap rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 sm:hidden">
               {activeProfile.name}
             </span>
           )}
@@ -54,15 +63,78 @@ export default function Navbar({ activeTab, onChangeTab }) {
               {tab.label}
             </button>
           ))}
-          <ExportDataButton className="flex items-center gap-1 rounded-md border border-slate-300 px-3 py-1.5 hover:border-slate-400" />
-          <button
-            type="button"
-            onClick={lock}
-            className="flex items-center gap-1 rounded-md border border-slate-300 px-3 py-1.5 hover:border-slate-400"
-          >
-            <LockIcon className="h-4 w-4" />
-            Cambiar perfil
-          </button>
+
+          {activeProfile && (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setProfileMenuOpen((prev) => !prev)}
+                aria-expanded={profileMenuOpen}
+                className="flex items-center gap-2 rounded-full border border-slate-200 py-1 pl-1 pr-2.5 hover:border-slate-300"
+              >
+                <span className="h-7 w-7 shrink-0 overflow-hidden rounded-full">
+                  <img
+                    src={avatar.src}
+                    alt={avatar.label}
+                    className="h-full w-full object-cover"
+                  />
+                </span>
+                <span className="max-w-[8rem] truncate text-slate-700">
+                  {activeProfile.name}
+                </span>
+                <ChevronDownIcon className="h-4 w-4 shrink-0 text-slate-400" />
+              </button>
+
+              {profileMenuOpen && (
+                <>
+                  <button
+                    type="button"
+                    aria-label="Cerrar menú"
+                    onClick={() => setProfileMenuOpen(false)}
+                    className="fixed inset-0 z-40"
+                  />
+                  <div className="absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg">
+                    <ExportDataButton
+                      onDone={() => setProfileMenuOpen(false)}
+                      className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left hover:bg-slate-50"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setProfileMenuOpen(false)
+                        setChangingAvatar(true)
+                      }}
+                      className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left hover:bg-slate-50"
+                    >
+                      <UserIcon className="h-4 w-4" />
+                      Cambiar avatar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setProfileMenuOpen(false)
+                        setChangingPassphrase(true)
+                      }}
+                      className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left hover:bg-slate-50"
+                    >
+                      <KeyIcon className="h-4 w-4" />
+                      Cambiar clave
+                    </button>
+                    <div className="border-t border-slate-100">
+                      <button
+                        type="button"
+                        onClick={handleLock}
+                        className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left hover:bg-slate-50"
+                      >
+                        <LockIcon className="h-4 w-4" />
+                        Cambiar perfil
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Botón hamburguesa (solo mobile) */}
@@ -108,6 +180,28 @@ export default function Navbar({ activeTab, onChangeTab }) {
               />
               <button
                 type="button"
+                onClick={() => {
+                  setMenuOpen(false)
+                  setChangingAvatar(true)
+                }}
+                className="flex items-center gap-2 py-3.5 text-left text-base font-medium text-slate-600"
+              >
+                <UserIcon className="h-4 w-4" />
+                Cambiar avatar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false)
+                  setChangingPassphrase(true)
+                }}
+                className="flex items-center gap-2 py-3.5 text-left text-base font-medium text-slate-600"
+              >
+                <KeyIcon className="h-4 w-4" />
+                Cambiar clave
+              </button>
+              <button
+                type="button"
                 onClick={handleLock}
                 className="flex items-center gap-2 py-3.5 text-left text-base font-medium text-slate-600"
               >
@@ -118,6 +212,12 @@ export default function Navbar({ activeTab, onChangeTab }) {
           </div>
         </div>
       )}
+
+      {changingPassphrase && (
+        <ChangePassphraseModal onClose={() => setChangingPassphrase(false)} />
+      )}
+
+      {changingAvatar && <ChangeAvatarModal onClose={() => setChangingAvatar(false)} />}
     </header>
   )
 }

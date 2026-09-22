@@ -9,6 +9,32 @@ const base = {
   strokeLinejoin: 'round',
 }
 
+export function UserIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 20c0-4 3.5-6 8-6s8 2 8 6" />
+    </svg>
+  )
+}
+
+export function KeyIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="8" cy="15" r="4" />
+      <path d="M11 12 20 3M16 4l3 3M13 7l2.5 2.5" />
+    </svg>
+  )
+}
+
+export function ChevronDownIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M6 9l6 6 6-6" />
+    </svg>
+  )
+}
+
 export function ChevronLeftIcon(props) {
   return (
     <svg {...base} {...props}>

@@ -20,3 +20,7 @@ export function addProfile(profile) {
 export function removeProfileRecord(id) {
   return saveProfiles(listProfiles().filter((p) => p.id !== id))
 }
+
+export function updateProfileRecord(id, updates) {
+  return saveProfiles(listProfiles().map((p) => (p.id === id ? { ...p, ...updates } : p)))
+}

@@ -2,13 +2,16 @@ import { useState } from 'react'
 import { useVault } from '../../context/VaultContext'
 import { getAvatar } from '../avatars'
 import { PlusIcon, TrashIcon, UploadIcon } from '../icons'
+import DeleteProfileModal from './DeleteProfileModal'
 import ImportProfileModal from './ImportProfileModal'
 
 export default function ProfileSelect() {
-  const { profiles, selectProfile, startCreateProfile, removeProfile } = useVault()
+  const { profiles, selectProfile, startCreateProfile } = useVault()
   const [managing, setManaging] = useState(false)
   const [confirmingId, setConfirmingId] = useState(null)
   const [importing, setImporting] = useState(false)
+
+  const confirmingProfile = profiles.find((p) => p.id === confirmingId)
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center bg-slate-50 px-6 py-12">
@@ -20,20 +23,26 @@ export default function ProfileSelect() {
           const avatar = getAvatar(profile.avatarId)
           return (
             <div key={profile.id} className="flex flex-col items-center gap-2">
-              <button
-                type="button"
-                onClick={() =>
-                  managing ? setConfirmingId(profile.id) : selectProfile(profile.id)
-                }
-                className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full"
-              >
-                <img src={avatar.src} alt={avatar.label} className="h-full w-full object-cover" />
+              <div className="relative h-20 w-20">
+                <button
+                  type="button"
+                  onClick={() =>
+                    managing ? setConfirmingId(profile.id) : selectProfile(profile.id)
+                  }
+                  className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full"
+                >
+                  <img
+                    src={avatar.src}
+                    alt={avatar.label}
+                    className="h-full w-full object-cover"
+                  />
+                </button>
                 {managing && (
-                  <span className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-white text-red-600 ring-1 ring-slate-200">
+                  <span className="pointer-events-none absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-red-600 text-white ring-2 ring-white">
                     <TrashIcon className="h-3.5 w-3.5" />
                   </span>
                 )}
-              </button>
+              </div>
               <span className="text-sm font-medium text-slate-700">{profile.name}</span>
             </div>
           )
@@ -69,34 +78,12 @@ export default function ProfileSelect() {
 
       {importing && <ImportProfileModal onClose={() => setImporting(false)} />}
 
-      {confirmingId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/40 px-4 py-8 sm:px-6">
-          <div className="w-full max-w-sm rounded-lg bg-white p-6">
-            <p className="text-sm text-slate-700">
-              Esto borra permanentemente el perfil y todos sus datos. No se puede
-              deshacer.
-            </p>
-            <div className="mt-4 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setConfirmingId(null)}
-                className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  removeProfile(confirmingId)
-                  setConfirmingId(null)
-                }}
-                className="rounded-md bg-red-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-red-700"
-              >
-                Eliminar perfil
-              </button>
-            </div>
-          </div>
-        </div>
+      {confirmingProfile && (
+        <DeleteProfileModal
+          profileId={confirmingProfile.id}
+          profileName={confirmingProfile.name}
+          onClose={() => setConfirmingId(null)}
+        />
       )}
     </div>
   )

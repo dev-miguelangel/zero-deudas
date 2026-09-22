@@ -1,12 +1,30 @@
 import { useState } from 'react'
 import { useVault } from '../../context/VaultContext'
+import { AVATARS, getAvatar } from '../avatars'
 import { createSecureStorage } from '../../lib/secureStorage'
 import { decryptExportFile, isValidExportFile } from '../../lib/vaultFile'
+import { CheckCircleIcon, UploadIcon } from '../icons'
+import AvatarPicker from './AvatarPicker'
+
+function suggestUniqueName(base, profiles) {
+  const taken = new Set(profiles.map((p) => p.name.trim().toLowerCase()))
+  if (!taken.has(base.trim().toLowerCase())) return base
+  let i = 2
+  let candidate = `${base} (${i})`
+  while (taken.has(candidate.toLowerCase())) {
+    i += 1
+    candidate = `${base} (${i})`
+  }
+  return candidate
+}
 
 export default function ImportProfileModal({ onClose }) {
-  const { profiles, importProfile, loginAs } = useVault()
+  const { profiles, importProfile, loginAs, computeCheckForKey } = useVault()
   const [file, setFile] = useState(null)
+  const [fileName, setFileName] = useState(null)
   const [name, setName] = useState('')
+  const [nameWasAdjusted, setNameWasAdjusted] = useState(false)
+  const [avatarId, setAvatarId] = useState(AVATARS[0].id)
   const [passphrase, setPassphrase] = useState('')
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
@@ -15,6 +33,7 @@ export default function ImportProfileModal({ onClose }) {
     const selected = event.target.files?.[0]
     setError(null)
     setFile(null)
+    setFileName(null)
     if (!selected) return
 
     const reader = new FileReader()
@@ -26,7 +45,12 @@ export default function ImportProfileModal({ onClose }) {
           return
         }
         setFile(parsed)
-        setName(parsed.profile?.name ?? '')
+        setFileName(selected.name)
+        const baseName = parsed.profile?.name?.trim() || 'Perfil importado'
+        const suggested = suggestUniqueName(baseName, profiles)
+        setName(suggested)
+        setNameWasAdjusted(suggested !== baseName)
+        setAvatarId(getAvatar(parsed.profile?.avatarId).id)
       } catch {
         setError('No se pudo leer el archivo.')
       }
@@ -56,11 +80,16 @@ export default function ImportProfileModal({ onClose }) {
     setBusy(true)
     try {
       const { key, debts } = await decryptExportFile(file, passphrase)
+      // El "check" del archivo solo sirve para validar la clave al leerlo
+      // (usa su propio valor interno). El perfil que queda guardado acá
+      // necesita el check del vault local, para que el login normal
+      // funcione después.
+      const check = await computeCheckForKey(key)
       const newProfileId = importProfile({
         name: trimmedName,
-        avatarId: file.profile?.avatarId,
+        avatarId,
         salt: file.salt,
-        check: file.check,
+        check,
       })
       await createSecureStorage(key, newProfileId).setItem('debts', debts)
       loginAs(newProfileId, key)
@@ -82,14 +111,37 @@ export default function ImportProfileModal({ onClose }) {
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div>
             <label htmlFor="import-file" className="block text-sm font-medium text-slate-700">
-              Archivo
+              Archivo .zero
+            </label>
+            <label
+              htmlFor="import-file"
+              className={`mt-1 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed px-4 py-6 text-center text-sm transition-colors ${
+                file
+                  ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
+                  : 'border-slate-300 text-slate-500 hover:border-slate-400 hover:bg-slate-50'
+              }`}
+            >
+              {file ? (
+                <>
+                  <CheckCircleIcon className="h-6 w-6" />
+                  <span className="font-medium">{fileName}</span>
+                  <span className="text-xs text-emerald-600 underline">Elegir otro archivo</span>
+                </>
+              ) : (
+                <>
+                  <UploadIcon className="h-6 w-6" />
+                  <span>
+                    Toca para elegir tu archivo <strong>.zero</strong>
+                  </span>
+                </>
+              )}
             </label>
             <input
               id="import-file"
               type="file"
               accept=".zero"
               onChange={handleFileChange}
-              className="mt-1 block w-full text-sm text-slate-600"
+              className="sr-only"
             />
           </div>
 
@@ -106,10 +158,25 @@ export default function ImportProfileModal({ onClose }) {
                   id="import-name"
                   type="text"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    setName(e.target.value)
+                    setNameWasAdjusted(false)
+                  }}
                   className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
                   autoFocus
                 />
+                {nameWasAdjusted && (
+                  <p className="mt-1 text-xs text-slate-500">
+                    Ya tienes un perfil con ese nombre — lo ajusté para que no se repita. Puedes
+                    cambiarlo si quieres.
+                  </p>
+                )}
+              </div>
+              <div>
+                <p className="block text-sm font-medium text-slate-700">Avatar</p>
+                <div className="mt-2">
+                  <AvatarPicker value={avatarId} onChange={setAvatarId} />
+                </div>
               </div>
               <div>
                 <label
