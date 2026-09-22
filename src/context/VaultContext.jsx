@@ -77,6 +77,24 @@ export function VaultProvider({ children }) {
           setStatus('select')
         }
       },
+      /**
+       * Registra un perfil nuevo a partir de un salt/check ya existentes
+       * (viene de un archivo .zero importado, no de un passphrase nuevo).
+       * Devuelve el id del perfil creado.
+       */
+      importProfile({ name, avatarId, salt, check }) {
+        setError(null)
+        const profile = { id: crypto.randomUUID(), name, avatarId, salt, check }
+        setProfiles(addProfile(profile))
+        return profile.id
+      },
+      /** Entra directo a un perfil con una clave ya derivada (post-importación). */
+      loginAs(profileId, key) {
+        setError(null)
+        setActiveProfileId(profileId)
+        setCryptoKey(key)
+        setStatus('unlocked')
+      },
     }),
     [profiles, status, activeProfile, activeProfileId, cryptoKey, error],
   )

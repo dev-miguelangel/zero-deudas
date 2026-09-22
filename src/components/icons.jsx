@@ -25,6 +25,24 @@ export function ChevronRightIcon(props) {
   )
 }
 
+export function DownloadIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M12 4v11M7 11l5 5 5-5" />
+      <path d="M4 19h16" />
+    </svg>
+  )
+}
+
+export function UploadIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M12 19V8M7 13l5-5 5 5" />
+      <path d="M4 19h16" />
+    </svg>
+  )
+}
+
 export function CheckIcon(props) {
   return (
     <svg {...base} {...props}>

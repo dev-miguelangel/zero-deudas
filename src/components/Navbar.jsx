@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useVault } from '../context/VaultContext'
+import ExportDataButton from './ExportDataButton'
 import { CloseIcon, LockIcon, MenuIcon } from './icons'
 import IndicatorsBar from './IndicatorsBar'
 
@@ -53,6 +54,7 @@ export default function Navbar({ activeTab, onChangeTab }) {
               {tab.label}
             </button>
           ))}
+          <ExportDataButton className="flex items-center gap-1 rounded-md border border-slate-300 px-3 py-1.5 hover:border-slate-400" />
           <button
             type="button"
             onClick={lock}
@@ -100,6 +102,10 @@ export default function Navbar({ activeTab, onChangeTab }) {
                   {tab.label}
                 </button>
               ))}
+              <ExportDataButton
+                onDone={() => setMenuOpen(false)}
+                className="flex items-center gap-2 py-3.5 text-left text-base font-medium text-slate-600"
+              />
               <button
                 type="button"
                 onClick={handleLock}

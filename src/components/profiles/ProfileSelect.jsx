@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { useVault } from '../../context/VaultContext'
 import { getAvatar } from '../avatars'
-import { PlusIcon, TrashIcon } from '../icons'
+import { PlusIcon, TrashIcon, UploadIcon } from '../icons'
+import ImportProfileModal from './ImportProfileModal'
 
 export default function ProfileSelect() {
   const { profiles, selectProfile, startCreateProfile, removeProfile } = useVault()
   const [managing, setManaging] = useState(false)
   const [confirmingId, setConfirmingId] = useState(null)
+  const [importing, setImporting] = useState(false)
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center bg-slate-50 px-6 py-12">
@@ -45,15 +47,27 @@ export default function ProfileSelect() {
         </button>
       </div>
 
-      {profiles.length > 0 && (
+      <div className="mt-10 flex gap-2">
+        {profiles.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setManaging((prev) => !prev)}
+            className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700"
+          >
+            {managing ? 'Listo' : 'Administrar perfiles'}
+          </button>
+        )}
         <button
           type="button"
-          onClick={() => setManaging((prev) => !prev)}
-          className="mt-10 rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700"
+          onClick={() => setImporting(true)}
+          className="flex items-center gap-1 rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700"
         >
-          {managing ? 'Listo' : 'Administrar perfiles'}
+          <UploadIcon className="h-4 w-4" />
+          Importar
         </button>
-      )}
+      </div>
+
+      {importing && <ImportProfileModal onClose={() => setImporting(false)} />}
 
       {confirmingId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/40 px-4 py-8 sm:px-6">
