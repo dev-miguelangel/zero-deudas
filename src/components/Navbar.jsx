@@ -4,6 +4,7 @@ import { getAvatar } from './avatars'
 import ExportDataButton from './ExportDataButton'
 import { ChevronDownIcon, CloseIcon, KeyIcon, LockIcon, MenuIcon, UserIcon } from './icons'
 import IndicatorsBar from './IndicatorsBar'
+import ShareLinkButton from './ShareLinkButton'
 import ChangeAvatarModal from './profiles/ChangeAvatarModal'
 import ChangePassphraseModal from './profiles/ChangePassphraseModal'
 
@@ -98,6 +99,7 @@ export default function Navbar({ activeTab, onChangeTab }) {
                       onDone={() => setProfileMenuOpen(false)}
                       className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left hover:bg-slate-50"
                     />
+                    <ShareLinkButton className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left hover:bg-slate-50" />
                     <button
                       type="button"
                       onClick={() => {
@@ -178,6 +180,7 @@ export default function Navbar({ activeTab, onChangeTab }) {
                 onDone={() => setMenuOpen(false)}
                 className="flex items-center gap-2 py-3.5 text-left text-base font-medium text-slate-600"
               />
+              <ShareLinkButton className="flex items-center gap-2 py-3.5 text-left text-base font-medium text-slate-600" />
               <button
                 type="button"
                 onClick={() => {

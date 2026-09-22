@@ -1,17 +1,36 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useVault } from '../../context/VaultContext'
 import { getAvatar } from '../avatars'
+import { decodeExportFileFromUrl } from '../../lib/vaultFile'
 import { PlusIcon, TrashIcon, UploadIcon } from '../icons'
 import DeleteProfileModal from './DeleteProfileModal'
 import ImportProfileModal from './ImportProfileModal'
+
+const IMPORT_HASH_PREFIX = '#import='
 
 export default function ProfileSelect() {
   const { profiles, selectProfile, startCreateProfile } = useVault()
   const [managing, setManaging] = useState(false)
   const [confirmingId, setConfirmingId] = useState(null)
   const [importing, setImporting] = useState(false)
+  const [linkedFile, setLinkedFile] = useState(null)
 
   const confirmingProfile = profiles.find((p) => p.id === confirmingId)
+
+  // Si se abrió la app desde un enlace compartido (#import=...), salta
+  // directo al formulario de importación con esos datos ya cargados.
+  useEffect(() => {
+    const hash = window.location.hash
+    if (!hash.startsWith(IMPORT_HASH_PREFIX)) return
+    window.history.replaceState(null, '', window.location.pathname + window.location.search)
+    try {
+      setLinkedFile(decodeExportFileFromUrl(hash.slice(IMPORT_HASH_PREFIX.length)))
+      setImporting(true)
+    } catch {
+      // Enlace dañado o incompleto: se ignora en silencio, queda la
+      // pantalla normal de selección de perfil.
+    }
+  }, [])
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center bg-slate-50 px-6 py-12">
@@ -76,7 +95,15 @@ export default function ProfileSelect() {
         </button>
       </div>
 
-      {importing && <ImportProfileModal onClose={() => setImporting(false)} />}
+      {importing && (
+        <ImportProfileModal
+          initialFile={linkedFile}
+          onClose={() => {
+            setImporting(false)
+            setLinkedFile(null)
+          }}
+        />
+      )}
 
       {confirmingProfile && (
         <DeleteProfileModal

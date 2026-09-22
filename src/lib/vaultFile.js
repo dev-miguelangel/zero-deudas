@@ -50,3 +50,36 @@ export async function decryptExportFile(file, passphrase) {
   const debts = await decryptJSON(key, file.data)
   return { key, debts }
 }
+
+function toBase64Url(str) {
+  const bytes = new TextEncoder().encode(str)
+  let binary = ''
+  for (const byte of bytes) binary += String.fromCharCode(byte)
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+
+function fromBase64Url(str) {
+  const base64 = str.replace(/-/g, '+').replace(/_/g, '/')
+  const pad = base64.length % 4 === 0 ? '' : '='.repeat(4 - (base64.length % 4))
+  const binary = atob(base64 + pad)
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i)
+  return new TextDecoder().decode(bytes)
+}
+
+/**
+ * Mismo contenido que el archivo .zero, codificado para viajar en el
+ * fragmento (#) de una URL — el fragmento nunca se envía al servidor, así
+ * que el link es tan privado como el archivo.
+ */
+export function encodeExportFileForUrl(file) {
+  return toBase64Url(JSON.stringify(file))
+}
+
+export function decodeExportFileFromUrl(encoded) {
+  const parsed = JSON.parse(fromBase64Url(encoded))
+  if (!isValidExportFile(parsed)) {
+    throw new Error('INVALID_EXPORT_FILE')
+  }
+  return parsed
+}

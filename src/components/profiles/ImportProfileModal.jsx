@@ -18,13 +18,27 @@ function suggestUniqueName(base, profiles) {
   return candidate
 }
 
-export default function ImportProfileModal({ onClose }) {
+export default function ImportProfileModal({ onClose, initialFile }) {
   const { profiles, importProfile, loginAs, computeCheckForKey } = useVault()
-  const [file, setFile] = useState(null)
-  const [fileName, setFileName] = useState(null)
-  const [name, setName] = useState('')
-  const [nameWasAdjusted, setNameWasAdjusted] = useState(false)
-  const [avatarId, setAvatarId] = useState(AVATARS[0].id)
+
+  function loadedState(parsed) {
+    const baseName = parsed.profile?.name?.trim() || 'Perfil importado'
+    const suggested = suggestUniqueName(baseName, profiles)
+    return {
+      name: suggested,
+      nameWasAdjusted: suggested !== baseName,
+      avatarId: getAvatar(parsed.profile?.avatarId).id,
+    }
+  }
+
+  const initialLoaded = initialFile ? loadedState(initialFile) : null
+
+  const [file, setFile] = useState(initialFile ?? null)
+  const [fileName, setFileName] = useState(initialFile ? 'Enlace compartido' : null)
+  const [fromLink] = useState(Boolean(initialFile))
+  const [name, setName] = useState(initialLoaded?.name ?? '')
+  const [nameWasAdjusted, setNameWasAdjusted] = useState(initialLoaded?.nameWasAdjusted ?? false)
+  const [avatarId, setAvatarId] = useState(initialLoaded?.avatarId ?? AVATARS[0].id)
   const [passphrase, setPassphrase] = useState('')
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
@@ -46,11 +60,10 @@ export default function ImportProfileModal({ onClose }) {
         }
         setFile(parsed)
         setFileName(selected.name)
-        const baseName = parsed.profile?.name?.trim() || 'Perfil importado'
-        const suggested = suggestUniqueName(baseName, profiles)
-        setName(suggested)
-        setNameWasAdjusted(suggested !== baseName)
-        setAvatarId(getAvatar(parsed.profile?.avatarId).id)
+        const loaded = loadedState(parsed)
+        setName(loaded.name)
+        setNameWasAdjusted(loaded.nameWasAdjusted)
+        setAvatarId(loaded.avatarId)
       } catch {
         setError('No se pudo leer el archivo.')
       }
@@ -104,46 +117,56 @@ export default function ImportProfileModal({ onClose }) {
       <div className="w-full max-w-sm rounded-lg bg-white p-6">
         <h2 className="text-lg font-semibold text-slate-900">Importar perfil</h2>
         <p className="mt-2 text-sm text-slate-600">
-          Elige el archivo <strong>.zero</strong> que exportaste antes, e ingresa la
-          misma clave que usaste en ese perfil.
+          {fromLink
+            ? 'Recibiste un enlace con un perfil de ZeroDeudas. Ingresa la misma clave que se usó para generarlo.'
+            : 'Elige el archivo .zero que exportaste antes, e ingresa la misma clave que usaste en ese perfil.'}
         </p>
 
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-          <div>
-            <label htmlFor="import-file" className="block text-sm font-medium text-slate-700">
-              Archivo .zero
-            </label>
-            <label
-              htmlFor="import-file"
-              className={`mt-1 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed px-4 py-6 text-center text-sm transition-colors ${
-                file
-                  ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
-                  : 'border-slate-300 text-slate-500 hover:border-slate-400 hover:bg-slate-50'
-              }`}
-            >
-              {file ? (
-                <>
-                  <CheckCircleIcon className="h-6 w-6" />
-                  <span className="font-medium">{fileName}</span>
-                  <span className="text-xs text-emerald-600 underline">Elegir otro archivo</span>
-                </>
-              ) : (
-                <>
-                  <UploadIcon className="h-6 w-6" />
-                  <span>
-                    Toca para elegir tu archivo <strong>.zero</strong>
-                  </span>
-                </>
-              )}
-            </label>
-            <input
-              id="import-file"
-              type="file"
-              accept=".zero"
-              onChange={handleFileChange}
-              className="sr-only"
-            />
-          </div>
+          {fromLink ? (
+            <div className="flex items-center gap-2 rounded-md border-2 border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+              <CheckCircleIcon className="h-5 w-5 shrink-0" />
+              Perfil recibido por enlace
+            </div>
+          ) : (
+            <div>
+              <label htmlFor="import-file" className="block text-sm font-medium text-slate-700">
+                Archivo .zero
+              </label>
+              <label
+                htmlFor="import-file"
+                className={`mt-1 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed px-4 py-6 text-center text-sm transition-colors ${
+                  file
+                    ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
+                    : 'border-slate-300 text-slate-500 hover:border-slate-400 hover:bg-slate-50'
+                }`}
+              >
+                {file ? (
+                  <>
+                    <CheckCircleIcon className="h-6 w-6" />
+                    <span className="font-medium">{fileName}</span>
+                    <span className="text-xs text-emerald-600 underline">
+                      Elegir otro archivo
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <UploadIcon className="h-6 w-6" />
+                    <span>
+                      Toca para elegir tu archivo <strong>.zero</strong>
+                    </span>
+                  </>
+                )}
+              </label>
+              <input
+                id="import-file"
+                type="file"
+                accept=".zero"
+                onChange={handleFileChange}
+                className="sr-only"
+              />
+            </div>
+          )}
 
           {file && (
             <>

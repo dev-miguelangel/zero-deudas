@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Summary from './components/Dashboard/Summary'
 import DebtList from './components/Debts/DebtList'
 import Footer from './components/Footer'
@@ -12,10 +12,15 @@ import ProfileUnlockForm from './components/profiles/ProfileUnlockForm'
 import { DebtsProvider, useDebts } from './context/DebtsContext'
 import { IndicadoresProvider } from './context/IndicadoresContext'
 import { useVault, VaultProvider } from './context/VaultContext'
+import { requestPersistentStorage } from './lib/persistence'
 
 function AppShell() {
   const { debts, loaded } = useDebts()
   const [activeTab, setActiveTab] = useState('deudas')
+
+  useEffect(() => {
+    requestPersistentStorage()
+  }, [])
 
   if (!loaded) {
     return <div className="flex min-h-dvh items-center justify-center text-slate-500">Cargando…</div>
