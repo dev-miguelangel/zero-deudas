@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { debtCalculatedSummary, isHipotecario, matchesAcreedorOrAlias } from '../../domain/debts'
 import { describeSimulationError, simulate } from '../../domain/simulator'
-import { formatCurrency, formatMonthsShort, formatUF } from '../../lib/format'
+import { formatCurrency, formatMonthsShort, formatRate, formatUF } from '../../lib/format'
 import { compareValues } from '../../lib/sort'
 import { debtTypeColor, debtTypeIcon, debtTypeLabel } from '../debtTypes'
 import { PencilIcon, TableIcon, TrashIcon } from '../icons'
@@ -128,8 +128,8 @@ export default function DebtsTableView({ debts, ufValue, onEdit, onDelete, onVie
                     </td>
                     <td className="p-3 text-right text-slate-700">
                       {summary.tasaDisponible
-                        ? `${summary.tasaInteresAnual}%`
-                        : `${summary.tasaInteresAnual}%*`}
+                        ? `${formatRate(summary.tasaInteresAnual)}%`
+                        : `${formatRate(summary.tasaInteresAnual)}%*`}
                     </td>
                     <td className="p-3 text-right text-slate-700">
                       {summary.montoTotalAPagar != null ? formatAmount(summary.montoTotalAPagar) : '—'}

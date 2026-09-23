@@ -109,6 +109,63 @@ export function projectUpcomingPayments(debts, typeOrder, ufValue, months = 6) {
   return { byType, totals }
 }
 
+/**
+ * Combina la amortización de varias deudas en una sola tabla mes a mes: en
+ * cada mes suma el interés, el capital y el saldo de todas las deudas que
+ * seleccionaste — cada una aporta según su propia amortización, y aporta 0
+ * desde el mes en que ya se liquidó (las deudas más cortas dejan de sumar
+ * antes que las más largas). Todo se expresa en pesos: los créditos
+ * hipotecarios (en UF) se convierten con `ufValue`.
+ *
+ * Una deuda queda fuera de la combinación (y se lista en `excluded`) si es
+ * hipotecaria y falta `ufValue`, o si `simulate` no pudo proyectarle un
+ * plazo (pago mínimo insuficiente / excede el plazo máximo) — no hay forma
+ * de sumarla a un total que sí converge.
+ */
+export function simulateCombined(debts, ufValue) {
+  const perDebt = []
+  const excluded = []
+
+  debts.forEach((debt) => {
+    if (isHipotecario(debt) && !ufValue) {
+      excluded.push({ debt, reason: 'UF_PENDING' })
+      return
+    }
+    const result = simulate(debt)
+    if (result.error) {
+      excluded.push({ debt, reason: result.error.code })
+      return
+    }
+    perDebt.push({ debt, result })
+  })
+
+  if (perDebt.length === 0) {
+    return { months: null, totalInterest: null, amortization: [], excluded }
+  }
+
+  const totalMonths = Math.max(...perDebt.map(({ result }) => result.months))
+  const toCLP = (debt, value) => (isHipotecario(debt) ? value * ufValue : value)
+
+  const amortization = Array.from({ length: totalMonths }, (_, i) => {
+    let interest = 0
+    let principal = 0
+    let balance = 0
+    perDebt.forEach(({ debt, result }) => {
+      const row = result.amortization[i]
+      if (row) {
+        interest += toCLP(debt, row.interest)
+        principal += toCLP(debt, row.principal)
+        balance += toCLP(debt, row.balance)
+      }
+    })
+    return { month: i + 1, interest, principal, balance }
+  })
+
+  const totalInterest = amortization.reduce((sum, row) => sum + row.interest, 0)
+
+  return { months: totalMonths, totalInterest, amortization, excluded }
+}
+
 export function describeSimulationError(error, debt) {
   if (!error) return null
   if (error.code === 'MIN_PAYMENT_TOO_LOW') {
@@ -118,4 +175,12 @@ export function describeSimulationError(error, debt) {
     return 'Con estos valores, la deuda no se liquida en un plazo razonable (50 años).'
   }
   return 'No se pudo calcular la simulación.'
+}
+
+/** Explica por qué una deuda quedó fuera de `simulateCombined` (su campo `excluded`). */
+export function describeExclusionReason(reason) {
+  if (reason === 'UF_PENDING') return 'sin valor de UF'
+  if (reason === 'MIN_PAYMENT_TOO_LOW') return 'pago mínimo insuficiente'
+  if (reason === 'EXCEEDS_MAX_TERM') return 'no converge en un plazo razonable'
+  return 'no se pudo incluir'
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { projectUpcomingPayments, simulate } from '../simulator'
+import { projectUpcomingPayments, simulate, simulateCombined } from '../simulator'
 
 const debtA = { id: 'a', acreedor: 'Tarjeta A', saldo: 1000, tasaInteresAnual: 20, pagoMinimo: 100 }
 const debtB = { id: 'b', acreedor: 'Tarjeta B', saldo: 300, tasaInteresAnual: 35, pagoMinimo: 50 }
@@ -85,5 +85,69 @@ describe('projectUpcomingPayments', () => {
     expect(row.pendingUF).toBe(false)
     expect(row.amounts[0]).toBeCloseTo(expectedClp, 5)
     expect(totals[0]).toBeCloseTo(expectedClp, 5)
+  })
+})
+
+describe('simulateCombined', () => {
+  it('sin deudas seleccionadas, no hay nada que combinar', () => {
+    const result = simulateCombined([], null)
+    expect(result.months).toBeNull()
+    expect(result.totalInterest).toBeNull()
+    expect(result.amortization).toEqual([])
+  })
+
+  it('suma interés/capital/saldo de dos deudas mes a mes, hasta la más larga', () => {
+    const result = simulateCombined([debtA, debtB], null)
+    const resultA = simulate(debtA)
+    const resultB = simulate(debtB)
+
+    expect(result.months).toBe(Math.max(resultA.months, resultB.months))
+    expect(result.amortization).toHaveLength(result.months)
+
+    // Mes 1: ambas deudas siguen activas, se suman.
+    expect(result.amortization[0].interest).toBeCloseTo(
+      resultA.amortization[0].interest + resultB.amortization[0].interest,
+      5,
+    )
+    expect(result.amortization[0].principal).toBeCloseTo(
+      resultA.amortization[0].principal + resultB.amortization[0].principal,
+      5,
+    )
+
+    // Último mes: solo la deuda más larga sigue activa (la otra aporta 0).
+    const lastIndex = result.months - 1
+    const shorter = resultA.months <= resultB.months ? resultA : resultB
+    const longer = resultA.months <= resultB.months ? resultB : resultA
+    expect(shorter.amortization[lastIndex]).toBeUndefined()
+    expect(result.amortization[lastIndex].interest).toBeCloseTo(
+      longer.amortization[lastIndex].interest,
+      5,
+    )
+  })
+
+  it('excluye deudas cuya simulación no converge, y las deja en `excluded`', () => {
+    const stuckDebt = { id: 'x', acreedor: 'Imposible', saldo: 10000, tasaInteresAnual: 36, pagoMinimo: 10 }
+    const result = simulateCombined([debtA, stuckDebt], null)
+    expect(result.excluded).toHaveLength(1)
+    expect(result.excluded[0].debt.id).toBe('x')
+    expect(result.excluded[0].reason).toBe('MIN_PAYMENT_TOO_LOW')
+    // El total solo considera debtA.
+    const resultA = simulate(debtA)
+    expect(result.months).toBe(resultA.months)
+  })
+
+  it('excluye hipotecarios sin valor de UF, y los convierte a pesos cuando sí lo hay', () => {
+    const mortgage = { id: 'h', acreedor: 'Banco', tipo: 'CH', saldo: 1000, tasaInteresAnual: 5, pagoMinimo: 50 }
+
+    const withoutUF = simulateCombined([mortgage], null)
+    expect(withoutUF.excluded).toHaveLength(1)
+    expect(withoutUF.excluded[0].reason).toBe('UF_PENDING')
+    expect(withoutUF.months).toBeNull()
+
+    const ufValue = 39000
+    const withUF = simulateCombined([mortgage], ufValue)
+    const result = simulate(mortgage)
+    expect(withUF.excluded).toHaveLength(0)
+    expect(withUF.amortization[0].interest).toBeCloseTo(result.amortization[0].interest * ufValue, 5)
   })
 })

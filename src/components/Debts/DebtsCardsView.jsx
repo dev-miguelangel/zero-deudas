@@ -1,6 +1,6 @@
 import { DEBT_TYPES, debtCalculatedSummary, isHipotecario } from '../../domain/debts'
 import { describeSimulationError, simulate } from '../../domain/simulator'
-import { formatCurrency, formatMonthsShort, formatUF } from '../../lib/format'
+import { formatCurrency, formatMonthsShort, formatRate, formatUF } from '../../lib/format'
 import { debtTypeIcon } from '../debtTypes'
 import { PencilIcon, TableIcon, TrashIcon } from '../icons'
 
@@ -69,8 +69,8 @@ export default function DebtsCardsView({ debts, ufValue, onEdit, onDelete, onVie
                         <dt className="text-slate-500">Tasa real</dt>
                         <dd className="text-right font-semibold text-slate-900">
                           {summary.tasaDisponible
-                            ? `${summary.tasaInteresAnual}% anual`
-                            : `${summary.tasaInteresAnual}% (sin monto original)`}
+                            ? `${formatRate(summary.tasaInteresAnual)}% anual`
+                            : `${formatRate(summary.tasaInteresAnual)}% (sin monto original)`}
                         </dd>
                         <dt className="text-slate-500">Monto total a pagar</dt>
                         <dd className="text-right font-semibold text-slate-900">

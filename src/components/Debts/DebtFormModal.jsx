@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { DEBT_TYPES, computeDerivedFields, validateDebt } from '../../domain/debts'
+import { formatRate } from '../../lib/format'
 import { debtTypeIcon } from '../debtTypes'
 import HelpTip from '../HelpTip'
 import NumericInput from '../NumericInput'
@@ -237,7 +238,7 @@ export default function DebtFormModal({ initialValue, onClose, onSubmit }) {
                   <dt className="text-slate-500">Tasa real</dt>
                   <dd className="text-right font-semibold text-slate-900">
                     {derived.tasaDisponible
-                      ? `${formatNumber(derived.tasaInteresAnual)}% anual`
+                      ? `${formatRate(derived.tasaInteresAnual)}% anual`
                       : derived.tasaInteresAnual === 0
                         ? '0% (sin monto original)'
                         : '—'}
