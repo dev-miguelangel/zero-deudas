@@ -1,19 +1,16 @@
-import { useState } from 'react'
 import { useIndicadores } from '../../context/IndicadoresContext'
 import { isHipotecario, toCLPEquivalent } from '../../domain/debts'
 import { currentMonthKey, monthLabelShort, shiftMonthKey } from '../../domain/payments'
 import { projectUpcomingPayments, simulate } from '../../domain/simulator'
 import { formatCurrency, formatMonths } from '../../lib/format'
 import { debtTypeIcon, debtTypeLabel } from '../debtTypes'
-import { TableIcon, TargetIcon } from '../icons'
-import TotalAmortizationModal from './TotalAmortizationModal'
+import { TargetIcon } from '../icons'
 
 const TYPE_ORDER = ['CH', 'CC', 'TC', 'LC', 'OT']
 const HORIZON_MONTHS = 6
 
 export default function Summary({ debts }) {
   const { data: indicadores } = useIndicadores()
-  const [showTotalAmortization, setShowTotalAmortization] = useState(false)
 
   if (debts.length === 0) {
     return (
@@ -54,19 +51,9 @@ export default function Summary({ debts }) {
 
   return (
     <div className="rounded-lg border border-slate-200 p-6">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <TargetIcon className="h-5 w-5 text-slate-900" />
-          <h2 className="text-lg font-semibold text-slate-900">Resumen</h2>
-        </div>
-        <button
-          type="button"
-          onClick={() => setShowTotalAmortization(true)}
-          className="flex items-center gap-1.5 rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-slate-400 hover:bg-slate-50"
-        >
-          <TableIcon className="h-3.5 w-3.5" />
-          Amortización total
-        </button>
+      <div className="flex items-center gap-2">
+        <TargetIcon className="h-5 w-5 text-slate-900" />
+        <h2 className="text-lg font-semibold text-slate-900">Resumen</h2>
       </div>
       <div
         className={`mt-4 grid gap-4 ${
@@ -151,14 +138,6 @@ export default function Summary({ debts }) {
           </table>
         </div>
       </div>
-
-      {showTotalAmortization && (
-        <TotalAmortizationModal
-          debts={debts}
-          ufValue={ufValue}
-          onClose={() => setShowTotalAmortization(false)}
-        />
-      )}
     </div>
   )
 }

@@ -1,4 +1,4 @@
-function installment(principal, monthlyRate, numInstallments) {
+export function installment(principal, monthlyRate, numInstallments) {
   if (monthlyRate === 0) return principal / numInstallments
   const factor = (1 + monthlyRate) ** numInstallments
   return (principal * monthlyRate * factor) / (factor - 1)

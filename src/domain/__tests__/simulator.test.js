@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { projectUpcomingPayments, simulate, simulateCombined } from '../simulator'
+import {
+  projectUpcomingPayments,
+  simulate,
+  simulateCombined,
+  simulateHistorical,
+} from '../simulator'
 
 const debtA = { id: 'a', acreedor: 'Tarjeta A', saldo: 1000, tasaInteresAnual: 20, pagoMinimo: 100 }
 const debtB = { id: 'b', acreedor: 'Tarjeta B', saldo: 300, tasaInteresAnual: 35, pagoMinimo: 50 }
@@ -149,5 +154,61 @@ describe('simulateCombined', () => {
     const result = simulate(mortgage)
     expect(withUF.excluded).toHaveLength(0)
     expect(withUF.amortization[0].interest).toBeCloseTo(result.amortization[0].interest * ufValue, 5)
+  })
+})
+
+describe('simulateHistorical', () => {
+  it('sin monto original, no se puede reconstruir el historial', () => {
+    expect(simulateHistorical({ montoOriginal: null, cuotasPagadas: 5, valorCuota: 100 })).toEqual(
+      [],
+    )
+  })
+
+  it('sin cuotas pagadas, no hay historial que mostrar', () => {
+    expect(
+      simulateHistorical({ montoOriginal: 1200, cuotasPagadas: 0, valorCuota: 100 }),
+    ).toEqual([])
+  })
+
+  it('con 0% de interés, el saldo baja de forma lineal, cuota a cuota', () => {
+    const rows = simulateHistorical({
+      montoOriginal: 1200,
+      valorCuota: 100,
+      tasaInteresAnual: 0,
+      cuotasPagadas: 6,
+    })
+    expect(rows).toHaveLength(6)
+    expect(rows[0]).toEqual({ month: 1, interest: 0, principal: 100, balance: 1100 })
+    expect(rows[5]).toEqual({ month: 6, interest: 0, principal: 100, balance: 600 })
+  })
+
+  it('reconstruye un historial real (caso verificado a mano, mismo del estimador de saldo)', () => {
+    const debt = {
+      montoOriginal: 22121564,
+      valorCuota: 516790,
+      tasaInteresAnual: 14.18,
+      cuotasPagadas: 32,
+    }
+    const rows = simulateHistorical(debt)
+    expect(rows).toHaveLength(32)
+    expect(rows[31].month).toBe(32)
+    // Mismo caso que estimateBalanceAfterInstallments: saldo real reportado $12.272.984.
+    expect(rows[31].balance).toBeGreaterThan(12000000)
+    expect(rows[31].balance).toBeLessThan(12500000)
+    // El saldo debe bajar en cada fila (interés menor que la cuota).
+    for (let i = 1; i < rows.length; i += 1) {
+      expect(rows[i].balance).toBeLessThan(rows[i - 1].balance)
+    }
+  })
+
+  it('se detiene si el saldo llega a 0 antes de completar todas las cuotas pagadas', () => {
+    const rows = simulateHistorical({
+      montoOriginal: 250,
+      valorCuota: 100,
+      tasaInteresAnual: 0,
+      cuotasPagadas: 5,
+    })
+    expect(rows).toHaveLength(3)
+    expect(rows.at(-1).balance).toBe(0)
   })
 })

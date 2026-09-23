@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import AmortizacionView from './components/Dashboard/AmortizacionView'
 import Summary from './components/Dashboard/Summary'
 import DebtList from './components/Debts/DebtList'
 import Footer from './components/Footer'
@@ -43,6 +44,8 @@ function AppShell() {
             <HistorialView />
           </>
         )}
+
+        {activeTab === 'amortizacion' && <AmortizacionView />}
 
         {activeTab === 'aprende' && <Learn />}
       </main>

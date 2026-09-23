@@ -166,6 +166,41 @@ export function simulateCombined(debts, ufValue) {
   return { months: totalMonths, totalInterest, amortization, excluded }
 }
 
+/**
+ * Reconstruye la amortización de las cuotas YA PAGADAS de una deuda
+ * (cuota 1 hasta `cuotasPagadas`), corriendo el mismo cálculo hacia
+ * adelante desde `montoOriginal` — es lo mismo que hace
+ * `estimateBalanceAfterInstallments`, pero guardando cada fila en vez de
+ * solo el saldo final. `simulate()` no puede darnos esto: solo proyecta
+ * hacia adelante desde el saldo de hoy, así que el historial ya está
+ * "absorbido" en ese número.
+ *
+ * Sin `montoOriginal` no hay de dónde partir a reconstruir el historial,
+ * así que devuelve un arreglo vacío (deudas migradas del modelo anterior,
+ * o creadas sin ese dato opcional).
+ */
+export function simulateHistorical(debt) {
+  if (debt.montoOriginal == null || !(debt.cuotasPagadas > 0) || !(debt.valorCuota > 0)) {
+    return []
+  }
+
+  const rate = debt.tasaInteresAnual / 100 / 12
+  const total = Math.floor(debt.cuotasPagadas)
+  let saldo = Number(debt.montoOriginal)
+  const rows = []
+
+  for (let month = 1; month <= total; month += 1) {
+    if (saldo <= 0.01) break
+    const interest = saldo * rate
+    const payment = Math.min(debt.valorCuota, saldo + interest)
+    const principal = payment - interest
+    saldo = Math.max(0, saldo - principal)
+    rows.push({ month, interest, principal, balance: saldo })
+  }
+
+  return rows
+}
+
 export function describeSimulationError(error, debt) {
   if (!error) return null
   if (error.code === 'MIN_PAYMENT_TOO_LOW') {

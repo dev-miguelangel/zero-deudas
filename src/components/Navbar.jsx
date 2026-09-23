@@ -11,6 +11,7 @@ import ChangePassphraseModal from './profiles/ChangePassphraseModal'
 const tabs = [
   { id: 'deudas', label: 'Deudas' },
   { id: 'pagos', label: 'Pagos' },
+  { id: 'amortizacion', label: 'Amortización' },
   { id: 'aprende', label: 'Aprende' },
 ]
 

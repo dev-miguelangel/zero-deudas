@@ -1,18 +1,23 @@
 import { useState } from 'react'
 import { isHipotecario } from '../../domain/debts'
-import { describeSimulationError, simulate } from '../../domain/simulator'
+import { describeSimulationError, simulate, simulateHistorical } from '../../domain/simulator'
 import { formatCurrency, formatUF } from '../../lib/format'
 import { CloseIcon, InfoIcon } from '../icons'
 
 export default function AmortizationTableModal({ debt, ufValue, onClose }) {
   const [showLegend, setShowLegend] = useState(true)
+  const [showPaidRows, setShowPaidRows] = useState(false)
   const hipotecario = isHipotecario(debt)
   const formatAmount = hipotecario ? formatUF : formatCurrency
   const result = simulate(debt)
   // La simulación solo proyecta hacia adelante desde el saldo de hoy, así
   // que las cuotas ya pagadas no aparecen como filas (ya están reflejadas
-  // en ese saldo) — se muestran resumidas en una sola fila tenue arriba.
+  // en ese saldo) — se muestran resumidas en una sola fila tenue por
+  // defecto. `simulateHistorical` las reconstruye desde el monto
+  // original, si se conoce, para poder mostrarlas una a una.
   const cuotasPagadas = Number.isInteger(debt.cuotasPagadas) ? debt.cuotasPagadas : null
+  const historicalRows = simulateHistorical(debt)
+  const canShowPaidRows = historicalRows.length > 0
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/40 py-8">
@@ -100,10 +105,41 @@ export default function AmortizationTableModal({ debt, ufValue, onClose }) {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {cuotasPagadas > 0 && (
+                    {cuotasPagadas > 0 && !showPaidRows && (
                       <tr className="bg-slate-50 italic text-slate-400">
                         <td className="p-2 text-left" colSpan={4}>
                           Cuotas 1–{cuotasPagadas} ya pagadas (reflejadas en el saldo actual)
+                          {canShowPaidRows && (
+                            <button
+                              type="button"
+                              onClick={() => setShowPaidRows(true)}
+                              className="ml-2 not-italic font-medium text-emerald-700 underline"
+                            >
+                              Ver cuotas pagadas
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    )}
+                    {showPaidRows &&
+                      historicalRows.map((row) => (
+                        <tr key={`pagada-${row.month}`} className="bg-slate-50/70 text-slate-400">
+                          <td className="p-2 text-left">{row.month}</td>
+                          <td className="p-2 text-right">{formatAmount(row.interest)}</td>
+                          <td className="p-2 text-right">{formatAmount(row.principal)}</td>
+                          <td className="p-2 text-right">{formatAmount(row.balance)}</td>
+                        </tr>
+                      ))}
+                    {showPaidRows && (
+                      <tr className="bg-slate-50">
+                        <td className="p-2 text-left" colSpan={4}>
+                          <button
+                            type="button"
+                            onClick={() => setShowPaidRows(false)}
+                            className="text-xs font-medium text-emerald-700 underline"
+                          >
+                            Ocultar cuotas pagadas
+                          </button>
                         </td>
                       </tr>
                     )}
