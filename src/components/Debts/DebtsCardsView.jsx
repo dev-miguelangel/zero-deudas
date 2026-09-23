@@ -2,9 +2,9 @@ import { DEBT_TYPES, debtCalculatedSummary, isHipotecario } from '../../domain/d
 import { describeSimulationError, simulate } from '../../domain/simulator'
 import { formatCurrency, formatMonthsShort, formatUF } from '../../lib/format'
 import { debtTypeIcon } from '../debtTypes'
-import { PencilIcon, TrashIcon } from '../icons'
+import { PencilIcon, TableIcon, TrashIcon } from '../icons'
 
-export default function DebtsCardsView({ debts, ufValue, onEdit, onDelete }) {
+export default function DebtsCardsView({ debts, ufValue, onEdit, onDelete, onViewAmortization }) {
   return (
     <div className="space-y-6">
       {DEBT_TYPES.map((type) => {
@@ -112,6 +112,15 @@ export default function DebtsCardsView({ debts, ufValue, onEdit, onDelete }) {
                         </p>
                       )}
                     </div>
+
+                    <button
+                      type="button"
+                      onClick={() => onViewAmortization(debt)}
+                      className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-slate-400 hover:bg-slate-50"
+                    >
+                      <TableIcon className="h-3.5 w-3.5" />
+                      Ver tabla de amortización
+                    </button>
                   </div>
                 )
               })}

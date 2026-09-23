@@ -6,6 +6,7 @@ import ConfirmPassphraseModal from '../ConfirmPassphraseModal'
 import { debtTypeIcon } from '../debtTypes'
 import { DEBT_TYPES } from '../../domain/debts'
 import { ChartBarIcon, GridIcon, PlusIcon, TableIcon } from '../icons'
+import AmortizationTableModal from './AmortizationTableModal'
 import DebtFormModal from './DebtFormModal'
 import DebtsCardsView from './DebtsCardsView'
 import DebtsChartsView from './DebtsChartsView'
@@ -24,6 +25,7 @@ export default function DebtList() {
   const [editing, setEditing] = useState(null)
   const [creating, setCreating] = useState(false)
   const [deleting, setDeleting] = useState(null)
+  const [viewingAmortization, setViewingAmortization] = useState(null)
   const [filterTipo, setFilterTipo] = useState('todos')
   const [view, setView] = useState('table')
 
@@ -116,6 +118,7 @@ export default function DebtList() {
               ufValue={ufValue}
               onEdit={setEditing}
               onDelete={setDeleting}
+              onViewAmortization={setViewingAmortization}
             />
           )}
           {view === 'charts' && <DebtsChartsView debts={visibleDebts} ufValue={ufValue} />}
@@ -125,6 +128,7 @@ export default function DebtList() {
               ufValue={ufValue}
               onEdit={setEditing}
               onDelete={setDeleting}
+              onViewAmortization={setViewingAmortization}
             />
           )}
         </div>
@@ -164,6 +168,14 @@ export default function DebtList() {
           verify={verifyPassphrase}
           onConfirm={() => removeDebt(deleting.id)}
           onClose={() => setDeleting(null)}
+        />
+      )}
+
+      {viewingAmortization && (
+        <AmortizationTableModal
+          debt={viewingAmortization}
+          ufValue={ufValue}
+          onClose={() => setViewingAmortization(null)}
         />
       )}
     </section>

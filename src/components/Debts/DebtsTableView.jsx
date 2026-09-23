@@ -4,7 +4,7 @@ import { describeSimulationError, simulate } from '../../domain/simulator'
 import { formatCurrency, formatMonthsShort, formatUF } from '../../lib/format'
 import { compareValues } from '../../lib/sort'
 import { debtTypeColor, debtTypeIcon, debtTypeLabel } from '../debtTypes'
-import { PencilIcon, TrashIcon } from '../icons'
+import { PencilIcon, TableIcon, TrashIcon } from '../icons'
 import SearchInput from '../SearchInput'
 import SortableTh from '../SortableTh'
 
@@ -19,7 +19,7 @@ const COLUMNS = [
   { key: 'exceso', label: 'Pago en exceso', align: 'right' },
 ]
 
-export default function DebtsTableView({ debts, ufValue, onEdit, onDelete }) {
+export default function DebtsTableView({ debts, ufValue, onEdit, onDelete, onViewAmortization }) {
   const [search, setSearch] = useState('')
   const [sortKey, setSortKey] = useState('acreedor')
   const [sortDir, setSortDir] = useState('asc')
@@ -153,6 +153,14 @@ export default function DebtsTableView({ debts, ufValue, onEdit, onDelete }) {
                     </td>
                     <td className="p-3">
                       <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          aria-label="Ver tabla de amortización"
+                          onClick={() => onViewAmortization(debt)}
+                          className="text-slate-500 hover:text-slate-900"
+                        >
+                          <TableIcon className="h-4 w-4" />
+                        </button>
                         <button
                           type="button"
                           aria-label="Editar"
