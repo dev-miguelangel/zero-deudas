@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { computeDerivedFields, createDebt, isHipotecario, migrateDebt, validateDebt } from '../debts'
+import {
+  computeDerivedFields,
+  createDebt,
+  debtCalculatedSummary,
+  isHipotecario,
+  migrateDebt,
+  validateDebt,
+} from '../debts'
 
 const validDebt = {
   acreedor: 'Banco X',
@@ -157,5 +164,35 @@ describe('createDebt', () => {
     expect(debt.alias).toBe('Compra notebook')
     expect(debt.pagos).toEqual([])
     expect(debt.id).toBeTruthy()
+  })
+})
+
+describe('debtCalculatedSummary', () => {
+  it('sin monto original, no calcula pago en exceso', () => {
+    const debt = createDebt({
+      acreedor: 'León',
+      tipo: 'TC',
+      cantidadCuotas: 6,
+      valorCuota: 100000,
+      cuotasPagadas: 2,
+    })
+    const summary = debtCalculatedSummary(debt)
+    expect(summary.excesoMonto).toBeNull()
+    expect(summary.excesoPct).toBeNull()
+  })
+
+  it('con monto original, calcula el pago en exceso en monto y %', () => {
+    const debt = createDebt({
+      acreedor: 'León',
+      tipo: 'TC',
+      montoOriginal: 500000,
+      cantidadCuotas: 6,
+      valorCuota: 100000,
+      cuotasPagadas: 0,
+    })
+    const summary = debtCalculatedSummary(debt)
+    // monto total a pagar = 600.000, prestado = 500.000 → exceso de 100.000 (20%)
+    expect(summary.excesoMonto).toBe(100000)
+    expect(summary.excesoPct).toBe(20)
   })
 })

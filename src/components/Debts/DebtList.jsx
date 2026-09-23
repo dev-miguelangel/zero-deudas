@@ -150,6 +150,12 @@ export default function DebtList() {
                             <dd className="text-right font-semibold text-slate-900">
                               {payoff.error ? '—' : formatMonthsShort(payoff.months)}
                             </dd>
+                            <dt className="text-slate-500">Pago en exceso</dt>
+                            <dd className="text-right font-semibold text-slate-900">
+                              {summary.excesoMonto != null
+                                ? `${formatAmount(summary.excesoMonto)} (${summary.excesoPct}%)`
+                                : '—'}
+                            </dd>
                           </dl>
                           {hipotecario && (
                             <p className="mt-2 text-xs text-slate-400">

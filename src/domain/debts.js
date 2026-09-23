@@ -210,15 +210,27 @@ export function isValidDebt(debt) {
  * caso la tasa guardada es el 0% de respaldo, no un valor real. Una deuda
  * antigua (sin `cantidadCuotas`, migrada del modelo anterior) siempre se
  * trata como si su tasa fuera real, porque se ingresó a mano.
+ *
+ * `excesoMonto`/`excesoPct` (cuánto se termina pagando de más sobre lo
+ * prestado, en monto y en %) solo se pueden calcular cuando se conoce
+ * `montoOriginal` — sin eso no hay con qué comparar el monto total a pagar.
  */
 export function debtCalculatedSummary(debt) {
   const tieneCuotas = debt.cantidadCuotas != null && debt.valorCuota != null
   const montoTotalAPagar = tieneCuotas ? debt.valorCuota * debt.cantidadCuotas : null
   const tasaDisponible = !tieneCuotas || debt.montoOriginal != null
+
+  const tieneMontoOriginal = debt.montoOriginal != null && debt.montoOriginal > 0
+  const excesoMonto =
+    tieneMontoOriginal && montoTotalAPagar != null ? montoTotalAPagar - debt.montoOriginal : null
+  const excesoPct = excesoMonto != null ? round2((excesoMonto / debt.montoOriginal) * 100) : null
+
   return {
     tasaInteresAnual: round2(debt.tasaInteresAnual),
     tasaDisponible,
     montoTotalAPagar,
     saldo: debt.saldo,
+    excesoMonto,
+    excesoPct,
   }
 }
