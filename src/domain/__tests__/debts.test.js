@@ -4,6 +4,7 @@ import {
   createDebt,
   debtCalculatedSummary,
   isHipotecario,
+  matchesAcreedorOrAlias,
   migrateDebt,
   validateDebt,
 } from '../debts'
@@ -194,5 +195,34 @@ describe('debtCalculatedSummary', () => {
     // monto total a pagar = 600.000, prestado = 500.000 → exceso de 100.000 (20%)
     expect(summary.excesoMonto).toBe(100000)
     expect(summary.excesoPct).toBe(20)
+  })
+})
+
+describe('matchesAcreedorOrAlias', () => {
+  const debt = { acreedor: 'Banco Estado', alias: 'Notebook trabajo' }
+
+  it('calza por substring del acreedor, sin importar mayúsculas', () => {
+    expect(matchesAcreedorOrAlias(debt, 'estado')).toBe(true)
+    expect(matchesAcreedorOrAlias(debt, 'BANCO')).toBe(true)
+  })
+
+  it('calza por substring del alias', () => {
+    expect(matchesAcreedorOrAlias(debt, 'trabajo')).toBe(true)
+    expect(matchesAcreedorOrAlias(debt, 'note')).toBe(true)
+  })
+
+  it('no calza si no aparece en ninguno de los dos', () => {
+    expect(matchesAcreedorOrAlias(debt, 'falabella')).toBe(false)
+  })
+
+  it('una búsqueda vacía siempre calza', () => {
+    expect(matchesAcreedorOrAlias(debt, '')).toBe(true)
+    expect(matchesAcreedorOrAlias(debt, '   ')).toBe(true)
+    expect(matchesAcreedorOrAlias(debt, undefined)).toBe(true)
+  })
+
+  it('funciona sin alias', () => {
+    expect(matchesAcreedorOrAlias({ acreedor: 'León' }, 'león')).toBe(true)
+    expect(matchesAcreedorOrAlias({ acreedor: 'León' }, 'algo')).toBe(false)
   })
 })

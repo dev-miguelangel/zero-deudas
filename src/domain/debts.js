@@ -200,6 +200,18 @@ export function isValidDebt(debt) {
 }
 
 /**
+ * Busca tipo "like" (contiene, sin importar mayúsculas/minúsculas) sobre
+ * el acreedor o el alias de una deuda. Una búsqueda vacía siempre calza.
+ */
+export function matchesAcreedorOrAlias(debt, query) {
+  const q = query?.trim().toLowerCase()
+  if (!q) return true
+  return (
+    (debt.acreedor ?? '').toLowerCase().includes(q) || (debt.alias ?? '').toLowerCase().includes(q)
+  )
+}
+
+/**
  * Resume una deuda ya guardada con la misma información que se muestra al
  * crearla (tasa real, monto total a pagar, saldo), para reutilizar en las
  * tarjetas de "Deudas". A diferencia de `computeDerivedFields`, no vuelve a

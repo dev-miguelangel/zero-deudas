@@ -12,8 +12,8 @@ import DebtsChartsView from './DebtsChartsView'
 import DebtsTableView from './DebtsTableView'
 
 const VIEWS = [
-  { id: 'cards', label: 'Tarjetas', icon: GridIcon },
   { id: 'table', label: 'Tabla', icon: TableIcon },
+  { id: 'cards', label: 'Tarjetas', icon: GridIcon },
   { id: 'charts', label: 'Gráficos', icon: ChartBarIcon },
 ]
 
@@ -25,7 +25,7 @@ export default function DebtList() {
   const [creating, setCreating] = useState(false)
   const [deleting, setDeleting] = useState(null)
   const [filterTipo, setFilterTipo] = useState('todos')
-  const [view, setView] = useState('cards')
+  const [view, setView] = useState('table')
 
   const ufValue = indicadores?.uf?.valor ?? null
   const visibleDebts =
