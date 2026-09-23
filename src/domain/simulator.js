@@ -1,3 +1,5 @@
+import { isHipotecario } from './debts'
+
 function monthlyRateOf(debt) {
   return debt.tasaInteresAnual / 100 / 12
 }
@@ -57,6 +59,54 @@ export function simulate(debt, { maxMonths = 600 } = {}) {
   }
 
   return { months: month, totalInterest, timeline, amortization, error: null }
+}
+
+/**
+ * Proyecta cuánto se pagará en los próximos `months` meses, agrupado por
+ * tipo de deuda (según `typeOrder`), sumando el pago mensual (interés +
+ * capital) de la amortización de cada deuda. Si `simulate` no pudo
+ * proyectar un plazo para una deuda (pago mínimo insuficiente o excede el
+ * plazo máximo), usa su `pagoMinimo` como estimación de ese mes — ese pago
+ * se seguiría haciendo igual, aunque no amortice.
+ *
+ * Los montos de créditos hipotecarios (guardados en UF) se convierten a
+ * pesos con `ufValue`. Si falta ese valor y hay algún hipotecario en el
+ * grupo, ese tipo (y por lo tanto el total) quedan con `amounts`/`totals`
+ * en `null` para ese mes en vez de un número.
+ */
+export function projectUpcomingPayments(debts, typeOrder, ufValue, months = 6) {
+  function paymentForMonth(debt, result, monthIndex) {
+    const row = result.amortization[monthIndex]
+    if (row) return row.interest + row.principal
+    if (result.error) return debt.pagoMinimo
+    return 0
+  }
+
+  const byType = typeOrder
+    .map((tipo) => {
+      const typeDebts = debts.filter((d) => d.tipo === tipo)
+      if (typeDebts.length === 0) return null
+
+      const pendingUF = typeDebts.some((d) => isHipotecario(d) && !ufValue)
+      const amounts = Array.from({ length: months }, (_, i) => {
+        if (pendingUF) return null
+        return typeDebts.reduce((sum, debt) => {
+          const result = simulate(debt)
+          const amount = paymentForMonth(debt, result, i)
+          return sum + (isHipotecario(debt) ? amount * ufValue : amount)
+        }, 0)
+      })
+
+      return { tipo, pendingUF, amounts }
+    })
+    .filter(Boolean)
+
+  const totals = Array.from({ length: months }, (_, i) => {
+    if (byType.some((row) => row.pendingUF)) return null
+    return byType.reduce((sum, row) => sum + row.amounts[i], 0)
+  })
+
+  return { byType, totals }
 }
 
 export function describeSimulationError(error, debt) {

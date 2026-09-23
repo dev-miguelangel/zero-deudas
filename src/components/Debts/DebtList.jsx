@@ -130,6 +130,14 @@ export default function DebtList() {
                             Con esos datos, calculamos:
                           </p>
                           <dl className="mt-2 grid grid-cols-2 gap-y-2 text-xs">
+                            {debt.montoOriginal != null && (
+                              <>
+                                <dt className="text-slate-500">Monto original del crédito</dt>
+                                <dd className="text-right font-semibold text-slate-900">
+                                  {formatAmount(debt.montoOriginal)}
+                                </dd>
+                              </>
+                            )}
                             <dt className="text-slate-500">Tasa real</dt>
                             <dd className="text-right font-semibold text-slate-900">
                               {summary.tasaDisponible

@@ -1,11 +1,13 @@
 import { useIndicadores } from '../../context/IndicadoresContext'
 import { isHipotecario, toCLPEquivalent } from '../../domain/debts'
-import { simulate } from '../../domain/simulator'
+import { currentMonthKey, monthLabelShort, shiftMonthKey } from '../../domain/payments'
+import { projectUpcomingPayments, simulate } from '../../domain/simulator'
 import { formatCurrency, formatMonths } from '../../lib/format'
 import { debtTypeIcon, debtTypeLabel } from '../debtTypes'
 import { TargetIcon } from '../icons'
 
 const TYPE_ORDER = ['CH', 'CC', 'TC', 'LC', 'OT']
+const HORIZON_MONTHS = 6
 
 export default function Summary({ debts }) {
   const { data: indicadores } = useIndicadores()
@@ -41,6 +43,11 @@ export default function Summary({ debts }) {
       monthsValue: errored ? '—' : formatMonths(months),
     }
   }).filter(Boolean)
+
+  const monthKeys = Array.from({ length: HORIZON_MONTHS }, (_, i) =>
+    shiftMonthKey(currentMonthKey(), i),
+  )
+  const projection = projectUpcomingPayments(debts, TYPE_ORDER, ufValue, HORIZON_MONTHS)
 
   return (
     <div className="rounded-lg border border-slate-200 p-6">
@@ -80,6 +87,56 @@ export default function Summary({ debts }) {
             </div>
           )
         })}
+      </div>
+
+      <div className="mt-6 border-t border-slate-200 pt-4">
+        <h3 className="text-sm font-semibold text-slate-900">
+          Pagos de los próximos {HORIZON_MONTHS} meses
+        </h3>
+        <div className="mt-3 overflow-x-auto">
+          <table className="w-full min-w-[480px] text-xs">
+            <thead>
+              <tr>
+                <th className="p-2 text-left font-medium text-slate-500">Tipo</th>
+                {monthKeys.map((mk) => (
+                  <th key={mk} className="p-2 text-right font-medium text-slate-500">
+                    {monthLabelShort(mk)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {projection.byType.map((row) => {
+                const Icon = debtTypeIcon(row.tipo)
+                return (
+                  <tr key={row.tipo}>
+                    <td className="p-2 text-left font-medium text-slate-700">
+                      <span className="flex items-center gap-1.5">
+                        <Icon className="h-3.5 w-3.5 text-slate-500" />
+                        {debtTypeLabel(row.tipo)}
+                      </span>
+                    </td>
+                    {row.amounts.map((amount, i) => (
+                      <td key={monthKeys[i]} className="p-2 text-right text-slate-900">
+                        {amount == null ? 'Cargando UF…' : formatCurrency(amount)}
+                      </td>
+                    ))}
+                  </tr>
+                )
+              })}
+            </tbody>
+            <tfoot>
+              <tr className="border-t border-slate-200 font-semibold text-slate-900">
+                <td className="p-2 text-left">Total</td>
+                {projection.totals.map((total, i) => (
+                  <td key={monthKeys[i]} className="p-2 text-right">
+                    {total == null ? 'Cargando UF…' : formatCurrency(total)}
+                  </td>
+                ))}
+              </tr>
+            </tfoot>
+          </table>
+        </div>
       </div>
     </div>
   )

@@ -25,6 +25,13 @@ export function shiftMonthKey(monthKey, delta) {
   return currentMonthKey(new Date(year, month - 1 + delta, 1))
 }
 
+export function monthLabelShort(monthKey) {
+  const [year, month] = monthKey.split('-').map(Number)
+  const date = new Date(year, month - 1, 1)
+  const label = date.toLocaleDateString('es-CL', { month: 'short' })
+  return label.charAt(0).toUpperCase() + label.slice(1)
+}
+
 export function isPaidForMonth(debt, monthKey) {
   return (debt.pagos ?? []).some((p) => p.mes === monthKey)
 }

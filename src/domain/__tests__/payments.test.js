@@ -6,6 +6,7 @@ import {
   isSettled,
   markPaid,
   monthLabel,
+  monthLabelShort,
   shiftMonthKey,
   unmarkLastPaid,
 } from '../payments'
@@ -36,6 +37,11 @@ describe('currentMonthKey / monthLabel', () => {
 
   it('genera una etiqueta legible en español', () => {
     expect(monthLabel('2026-01')).toMatch(/enero.*2026/i)
+  })
+
+  it('genera una etiqueta corta (mes abreviado, sin año)', () => {
+    expect(monthLabelShort('2026-01')).toMatch(/^ene/i)
+    expect(monthLabelShort('2026-01')).not.toMatch(/2026/)
   })
 })
 
