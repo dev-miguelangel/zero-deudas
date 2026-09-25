@@ -1,11 +1,15 @@
 import { useState } from 'react'
-import { isHipotecario, toCLPEquivalent } from '../../domain/debts'
+import { DEBT_TYPES, isHipotecario, toCLPEquivalent } from '../../domain/debts'
+import { projectUpcomingPayments } from '../../domain/simulator'
 import { formatCurrency } from '../../lib/format'
 import { debtTypeColor, debtTypeLabel } from '../debtTypes'
 import DonutChart from '../DonutChart'
 
+const TYPE_ORDER = DEBT_TYPES.map((t) => t.id)
+
 export default function DebtsChartsView({ debts, ufValue }) {
   const [excludedTypes, setExcludedTypes] = useState(() => new Set())
+  const [excludedMonthTypes, setExcludedMonthTypes] = useState(() => new Set())
   const pendingUF = debts.some((d) => isHipotecario(d) && !ufValue)
 
   if (pendingUF) {
@@ -46,6 +50,30 @@ export default function DebtsChartsView({ debts, ufValue }) {
     })
   }
 
+  function toggleMonthType(tipo) {
+    setExcludedMonthTypes((prev) => {
+      const next = new Set(prev)
+      if (next.has(tipo)) next.delete(tipo)
+      else next.add(tipo)
+      return next
+    })
+  }
+
+  const monthProjection = projectUpcomingPayments(debts, TYPE_ORDER, ufValue, 1)
+  const monthSegments = monthProjection.byType
+    .map((row) => ({
+      id: row.tipo,
+      label: debtTypeLabel(row.tipo),
+      value: row.amounts[0] ?? 0,
+      valueLabel: formatCurrency(row.amounts[0] ?? 0),
+      color: debtTypeColor(row.tipo),
+    }))
+    .sort((a, b) => b.value - a.value)
+
+  const visibleMonthTotal = monthSegments
+    .filter((s) => !excludedMonthTypes.has(s.id))
+    .reduce((sum, s) => sum + s.value, 0)
+
   const groupsByAcreedorTipo = converted.reduce((acc, d) => {
     const key = `${d.acreedor}__${d.tipo}`
     if (!acc[key]) acc[key] = { key, acreedor: d.acreedor, tipo: d.tipo, saldo: 0, count: 0 }
@@ -59,19 +87,40 @@ export default function DebtsChartsView({ debts, ufValue }) {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-lg border border-slate-200 p-6">
-        <h3 className="text-sm font-semibold text-slate-900">Distribución del saldo por tipo</h3>
-        <div className="mt-5">
-          <DonutChart
-            segments={donutSegments}
-            totalLabel={formatCurrency(visibleTotalSaldo)}
-            showValues={false}
-            showPercent
-            excludedIds={excludedTypes}
-            onToggle={toggleType}
-          />
+      <div className="grid gap-6 md:grid-cols-2">
+        <div className="rounded-lg border border-slate-200 p-6">
+          <h3 className="text-sm font-semibold text-slate-900">
+            Distribución del saldo por tipo
+          </h3>
+          <div className="mt-5">
+            <DonutChart
+              segments={donutSegments}
+              totalLabel={formatCurrency(visibleTotalSaldo)}
+              showValues={false}
+              showPercent
+              excludedIds={excludedTypes}
+              onToggle={toggleType}
+            />
+          </div>
+          <p className="mt-3 text-xs text-slate-400">Toca un tipo para mostrarlo u ocultarlo.</p>
         </div>
-        <p className="mt-3 text-xs text-slate-400">Toca un tipo para mostrarlo u ocultarlo.</p>
+
+        <div className="rounded-lg border border-slate-200 p-6">
+          <h3 className="text-sm font-semibold text-slate-900">
+            Distribución del pago de este mes por tipo
+          </h3>
+          <div className="mt-5">
+            <DonutChart
+              segments={monthSegments}
+              totalLabel={formatCurrency(visibleMonthTotal)}
+              showValues={false}
+              showPercent
+              excludedIds={excludedMonthTypes}
+              onToggle={toggleMonthType}
+            />
+          </div>
+          <p className="mt-3 text-xs text-slate-400">Toca un tipo para mostrarlo u ocultarlo.</p>
+        </div>
       </div>
 
       <div className="rounded-lg border border-slate-200 p-6">

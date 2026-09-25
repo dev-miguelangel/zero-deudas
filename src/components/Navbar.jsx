@@ -2,7 +2,16 @@ import { useState } from 'react'
 import { useVault } from '../context/VaultContext'
 import { getAvatar } from './avatars'
 import ExportDataButton from './ExportDataButton'
-import { ChevronDownIcon, CloseIcon, KeyIcon, LockIcon, MenuIcon, UserIcon } from './icons'
+import {
+  ChevronDownIcon,
+  CloseIcon,
+  KeyIcon,
+  LockIcon,
+  MenuIcon,
+  UploadIcon,
+  UserIcon,
+} from './icons'
+import ImportUpdatesModal from './ImportUpdatesModal'
 import IndicatorsBar from './IndicatorsBar'
 import ShareLinkButton from './ShareLinkButton'
 import ChangeAvatarModal from './profiles/ChangeAvatarModal'
@@ -21,6 +30,7 @@ export default function Navbar({ activeTab, onChangeTab }) {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const [changingPassphrase, setChangingPassphrase] = useState(false)
   const [changingAvatar, setChangingAvatar] = useState(false)
+  const [importingUpdates, setImportingUpdates] = useState(false)
 
   const avatar = activeProfile && getAvatar(activeProfile.avatarId)
 
@@ -101,6 +111,17 @@ export default function Navbar({ activeTab, onChangeTab }) {
                       className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left hover:bg-slate-50"
                     />
                     <ShareLinkButton className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left hover:bg-slate-50" />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setProfileMenuOpen(false)
+                        setImportingUpdates(true)
+                      }}
+                      className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left hover:bg-slate-50"
+                    >
+                      <UploadIcon className="h-4 w-4" />
+                      Importar actualizaciones
+                    </button>
                     <button
                       type="button"
                       onClick={() => {
@@ -186,6 +207,17 @@ export default function Navbar({ activeTab, onChangeTab }) {
                 type="button"
                 onClick={() => {
                   setMenuOpen(false)
+                  setImportingUpdates(true)
+                }}
+                className="flex items-center gap-2 py-3.5 text-left text-base font-medium text-slate-600"
+              >
+                <UploadIcon className="h-4 w-4" />
+                Importar actualizaciones
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false)
                   setChangingAvatar(true)
                 }}
                 className="flex items-center gap-2 py-3.5 text-left text-base font-medium text-slate-600"
@@ -222,6 +254,10 @@ export default function Navbar({ activeTab, onChangeTab }) {
       )}
 
       {changingAvatar && <ChangeAvatarModal onClose={() => setChangingAvatar(false)} />}
+
+      {importingUpdates && (
+        <ImportUpdatesModal onClose={() => setImportingUpdates(false)} />
+      )}
     </header>
   )
 }

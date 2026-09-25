@@ -26,6 +26,7 @@ describe('buildExportFile / decryptExportFile', () => {
 
     expect(isValidExportFile(file)).toBe(true)
     expect(file.profile).toEqual({ name: 'Miguel', avatarId: 'fox' })
+    expect(new Date(file.generatedAt).toISOString()).toBe(file.generatedAt)
 
     const { debts: decrypted } = await decryptExportFile(file, 'mi-clave-segura')
     expect(decrypted).toEqual(debts)

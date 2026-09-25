@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { createDebt, migrateDebt } from '../domain/debts'
+import { mergeSelectedDebts } from '../domain/syncImport'
 import { createSecureStorage } from '../lib/secureStorage'
 import { useVault } from './VaultContext'
 
@@ -47,6 +48,15 @@ export function DebtsProvider({ children }) {
       },
       removeDebt(id) {
         persist(debts.filter((d) => d.id !== id))
+      },
+      /**
+       * Aplica una selección de deudas diffeadas contra un archivo
+       * importado (ver `domain/syncImport.js`): agrega las nuevas y
+       * sobrescribe (conservando su id) las actualizadas, sin tocar el
+       * resto del perfil.
+       */
+      applyImportedDebts(entries, selectedIds) {
+        persist(mergeSelectedDebts(debts, entries, selectedIds))
       },
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps

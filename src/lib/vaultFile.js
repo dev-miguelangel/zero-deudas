@@ -7,7 +7,9 @@ const CHECK_VALUE = 'zerodeudas-export-ok'
 /**
  * Arma el contenido del archivo .zero: el perfil (nombre, avatar), el salt
  * para volver a derivar la clave, un "check" para validar la clave al
- * importar, y las deudas cifradas con la misma clave del perfil actual.
+ * importar, las deudas cifradas con la misma clave del perfil actual, y
+ * cuándo se generó (para poder usarlo después como respaldo "más nuevo"
+ * al importar actualizaciones entre dispositivos).
  */
 export async function buildExportFile({ profile, cryptoKey, debts }) {
   const [check, data] = await Promise.all([
@@ -17,6 +19,7 @@ export async function buildExportFile({ profile, cryptoKey, debts }) {
   return {
     app: APP_ID,
     version: FILE_VERSION,
+    generatedAt: new Date().toISOString(),
     profile: { name: profile.name, avatarId: profile.avatarId },
     salt: profile.salt,
     check,
