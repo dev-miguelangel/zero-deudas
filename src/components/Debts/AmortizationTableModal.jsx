@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { isHipotecario } from '../../domain/debts'
 import { describeSimulationError, simulate, simulateHistorical } from '../../domain/simulator'
 import { formatCurrency, formatUF } from '../../lib/format'
+import EstimateNote from '../EstimateNote'
 import { CloseIcon, InfoIcon } from '../icons'
 
 export default function AmortizationTableModal({ debt, ufValue, onClose }) {
@@ -236,6 +237,8 @@ export default function AmortizationTableModal({ debt, ufValue, onClose }) {
                 </div>
               )}
             </div>
+
+            <EstimateNote className="mt-3" />
           </>
         )}
 

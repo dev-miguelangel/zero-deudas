@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { buildPaymentPlan, minAbonoLegalClp, summarizePlanComparison } from '../paymentPlan'
+import {
+  buildPaymentPlan,
+  minAbonoLegalClp,
+  snapshotAllocations,
+  summarizePlanComparison,
+} from '../paymentPlan'
 import { installment } from '../rateEstimator'
 import { simulate } from '../simulator'
 
@@ -305,5 +310,28 @@ describe('summarizePlanComparison', () => {
 
     expect(summary.actual.pagoTotalClp).toBeGreaterThan(0)
     expect(summary.actual.pagoMensualClp).toBe(hipotecario.pagoMinimo * ufValue)
+  })
+})
+
+describe('snapshotAllocations', () => {
+  it('descarta timeline/amortization de before/after pero conserva el resto igual', () => {
+    const { allocations } = buildPaymentPlan([tarjeta, consumo], 300000, null, 'interes')
+    const snapshot = snapshotAllocations(allocations)
+
+    snapshot.forEach((a, i) => {
+      expect(a.before.timeline).toBeUndefined()
+      expect(a.before.amortization).toBeUndefined()
+      expect(a.after.timeline).toBeUndefined()
+      expect(a.after.amortization).toBeUndefined()
+      expect(a.before.months).toBe(allocations[i].before.months)
+      expect(a.before.totalInterest).toBe(allocations[i].before.totalInterest)
+      expect(a.appliedClp).toBe(allocations[i].appliedClp)
+      expect(a.debt).toEqual(allocations[i].debt)
+    })
+
+    // El resultado sigue sirviendo para summarizePlanComparison igual que el original.
+    const summaryOriginal = summarizePlanComparison(allocations, 'interes', null)
+    const summarySnapshot = summarizePlanComparison(snapshot, 'interes', null)
+    expect(summarySnapshot).toEqual(summaryOriginal)
   })
 })

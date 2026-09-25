@@ -226,3 +226,21 @@ export function summarizePlanComparison(allocations, objetivo, ufValue) {
 
   return { actual, plan, ahorroClp }
 }
+
+/**
+ * Versión liviana de `allocations` pensada para guardar (plan guardado en
+ * "Mis planes"): descarta las tablas mes a mes de `before`/`after`
+ * (`timeline`/`amortization`), que no se usan al mostrar un plan guardado
+ * — solo `months`, `totalInterest` y `error`. El resto de cada allocation
+ * (montos ya en CLP, la deuda, etc.) se conserva tal cual para que
+ * `PaymentPlanTable`, `PaymentPlanCards` y `summarizePlanComparison`
+ * funcionen sin cambios sobre el snapshot.
+ */
+export function snapshotAllocations(allocations) {
+  const lean = (result) => ({
+    months: result.months,
+    totalInterest: result.totalInterest,
+    error: result.error,
+  })
+  return allocations.map((a) => ({ ...a, before: lean(a.before), after: lean(a.after) }))
+}

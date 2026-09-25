@@ -70,7 +70,9 @@ export default function PlanComparisonSummary({ allocations, objetivo, ufValue }
         El pago mensual &quot;con plan aplicado&quot; usa la modalidad{' '}
         {objetivo === 'flujo' ? '"reducción de cuota"' : '"reducción de plazo" (se mantiene igual)'}{' '}
         en las deudas que no quedan saldadas por completo. El ahorro de &quot;Pago total
-        acumulado&quot; ya descuenta la comisión de prepago estimada.
+        acumulado&quot; ya descuenta la comisión de prepago estimada. Estos valores son
+        estimaciones para orientarte: pueden no coincidir exactamente con lo que calcule tu
+        entidad financiera.
       </p>
     </div>
   )

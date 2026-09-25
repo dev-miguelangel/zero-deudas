@@ -7,8 +7,13 @@ import { debtTypeIcon } from '../debtTypes'
 import { ChevronRightIcon } from '../icons'
 import CombinedAmortizationTab from './CombinedAmortizationTab'
 import PaymentPlanTab from './PaymentPlanTab'
+import SavedPlansTab from './SavedPlansTab'
 
-const TAB_IDS = ['tabla', 'plan']
+const TAB_IDS = ['tabla', 'plan', 'misplanes']
+const TAB_LABELS = {
+  plan: 'Plan de pago',
+  misplanes: 'Mis planes',
+}
 
 export default function AmortizacionView() {
   const { debts } = useDebts()
@@ -125,7 +130,7 @@ export default function AmortizacionView() {
         )}
 
         <div className="min-w-0 flex-1 space-y-3">
-          <div className="flex max-w-sm rounded-md border border-slate-300 p-0.5 text-xs font-medium">
+          <div className="flex max-w-md rounded-md border border-slate-300 p-0.5 text-xs font-medium">
             {TAB_IDS.map((id) => (
               <button
                 key={id}
@@ -138,18 +143,16 @@ export default function AmortizacionView() {
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                {id === 'tabla'
-                  ? `Resumen total (${selectedDebts.length})`
-                  : 'Plan de pago'}
+                {id === 'tabla' ? `Resumen total (${selectedDebts.length})` : TAB_LABELS[id]}
               </button>
             ))}
           </div>
 
-          {activeTab === 'tabla' ? (
+          {activeTab === 'tabla' && (
             <CombinedAmortizationTab selectedCount={selectedDebts.length} result={result} />
-          ) : (
-            <PaymentPlanTab debts={selectedDebts} ufValue={ufValue} />
           )}
+          {activeTab === 'plan' && <PaymentPlanTab debts={selectedDebts} ufValue={ufValue} />}
+          {activeTab === 'misplanes' && <SavedPlansTab />}
         </div>
       </div>
     </section>

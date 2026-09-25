@@ -1,18 +1,13 @@
 import { useState } from 'react'
-import { buildPaymentPlan } from '../../domain/paymentPlan'
+import { usePlans } from '../../context/PlansContext'
+import { buildPaymentPlan, snapshotAllocations } from '../../domain/paymentPlan'
 import { formatCurrency } from '../../lib/format'
-import { GridIcon, InfoIcon, TableIcon } from '../icons'
+import { InfoIcon } from '../icons'
 import NumericInput from '../NumericInput'
 import NormativaModal from './NormativaModal'
-import PaymentPlanCards from './PaymentPlanCards'
-import PaymentPlanTable from './PaymentPlanTable'
-import PlanComparisonSummary from './PlanComparisonSummary'
+import PlanResultPanel from './PlanResultPanel'
 import PriorityOrderList from './PriorityOrderList'
-
-const VIEWS = [
-  { id: 'table', label: 'Tabla', icon: TableIcon },
-  { id: 'cards', label: 'Tarjetas', icon: GridIcon },
-]
+import SavePlanModal from './SavePlanModal'
 
 const OBJETIVOS = [
   { id: 'interes', label: 'Ahorrar en intereses' },
@@ -67,10 +62,12 @@ function StepHeading({ number, title, caption }) {
 }
 
 export default function PaymentPlanTab({ debts, ufValue }) {
+  const { savePlan } = usePlans()
   const [montoDisponible, setMontoDisponible] = useState('')
   const [showNormativa, setShowNormativa] = useState(false)
-  const [view, setView] = useState('table')
   const [objetivo, setObjetivo] = useState('interes')
+  const [showSaveModal, setShowSaveModal] = useState(false)
+  const [justSaved, setJustSaved] = useState(false)
 
   const montoNumber = montoDisponible === '' ? 0 : montoDisponible
   const tieneMonto = Number(montoDisponible) > 0
@@ -166,64 +163,53 @@ export default function PaymentPlanTab({ debts, ufValue }) {
 
       {tieneMonto && (
         <div className="rounded-lg border border-slate-200 p-4">
-          <div className="flex flex-wrap items-start justify-between gap-2">
-            <StepHeading
-              number={3}
-              title={`Con ${formatCurrency(Number(montoDisponible))}, te conviene`}
-              caption="Reparto automático de ese monto entre las deudas seleccionadas, siguiendo el orden de prioridad de abajo."
-            />
-            {plan.allocations.length > 0 && (
-              <div className="flex shrink-0 rounded-md border border-slate-300 p-0.5 text-xs font-medium">
-                {VIEWS.map((v) => {
-                  const Icon = v.icon
-                  return (
-                    <button
-                      key={v.id}
-                      type="button"
-                      onClick={() => setView(v.id)}
-                      aria-label={v.label}
-                      aria-pressed={view === v.id}
-                      className={`flex items-center gap-1.5 rounded px-2.5 py-1.5 transition-colors ${
-                        view === v.id
-                          ? 'bg-slate-900 text-white'
-                          : 'text-slate-600 hover:text-slate-900'
-                      }`}
-                    >
-                      <Icon className="h-3.5 w-3.5" />
-                      <span className="hidden sm:inline">{v.label}</span>
-                    </button>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-
-          <div className="mt-3 space-y-3">
-            {plan.allocations.length === 0 ? (
-              <p className="rounded-lg border border-slate-200 p-4 text-sm text-slate-500">
-                No hay ninguna deuda a la que aplicarle ese monto (o todas quedaron fuera del
-                plan por falta del valor de la UF).
-              </p>
-            ) : view === 'table' ? (
-              <PaymentPlanTable allocations={plan.allocations} objetivo={objetivo} />
-            ) : (
-              <PaymentPlanCards allocations={plan.allocations} objetivo={objetivo} />
-            )}
-
-            {plan.sobranteClp > 0 && (
-              <p className="rounded-md bg-emerald-50 p-3 text-xs text-emerald-800">
-                Con ese monto alcanza para saldar por completo todas las deudas
-                seleccionadas — te sobran {formatCurrency(plan.sobranteClp)}.
-              </p>
-            )}
-
-            <PlanComparisonSummary
-              allocations={plan.allocations}
-              objetivo={objetivo}
-              ufValue={ufValue}
-            />
-          </div>
+          <PlanResultPanel
+            title={
+              <StepHeading
+                number={3}
+                title={`Con ${formatCurrency(Number(montoDisponible))}, te conviene`}
+                caption="Reparto automático de ese monto entre las deudas seleccionadas, siguiendo el orden de prioridad de abajo."
+              />
+            }
+            actions={
+              plan.allocations.length > 0 && (
+                <div className="flex items-center gap-2">
+                  {justSaved && <span className="text-xs text-emerald-700">Guardado ✓</span>}
+                  <button
+                    type="button"
+                    onClick={() => setShowSaveModal(true)}
+                    className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-slate-400 hover:bg-slate-50"
+                  >
+                    Guardar plan
+                  </button>
+                </div>
+              )
+            }
+            allocations={plan.allocations}
+            objetivo={objetivo}
+            sobranteClp={plan.sobranteClp}
+            ufValue={ufValue}
+          />
         </div>
+      )}
+
+      {showSaveModal && (
+        <SavePlanModal
+          onCancel={() => setShowSaveModal(false)}
+          onSave={(alias) => {
+            savePlan({
+              alias,
+              objetivo,
+              montoDisponible: Number(montoDisponible),
+              ufValue,
+              allocations: snapshotAllocations(plan.allocations),
+              sobranteClp: plan.sobranteClp,
+            })
+            setShowSaveModal(false)
+            setJustSaved(true)
+            setTimeout(() => setJustSaved(false), 2500)
+          }}
+        />
       )}
 
       <div className="rounded-lg border border-slate-200 p-4">

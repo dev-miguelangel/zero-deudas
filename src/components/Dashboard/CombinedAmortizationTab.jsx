@@ -1,5 +1,6 @@
 import { describeExclusionReason } from '../../domain/simulator'
 import { formatCurrency } from '../../lib/format'
+import EstimateNote from '../EstimateNote'
 
 export default function CombinedAmortizationTab({ selectedCount, result }) {
   if (selectedCount === 0) {
@@ -102,6 +103,8 @@ export default function CombinedAmortizationTab({ selectedCount, result }) {
           </tbody>
         </table>
       </div>
+
+      <EstimateNote />
     </div>
   )
 }

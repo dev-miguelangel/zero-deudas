@@ -14,6 +14,7 @@ import ProfileSelect from './components/profiles/ProfileSelect'
 import ProfileUnlockForm from './components/profiles/ProfileUnlockForm'
 import { DebtsProvider, useDebts } from './context/DebtsContext'
 import { IndicadoresProvider } from './context/IndicadoresContext'
+import { PlansProvider } from './context/PlansContext'
 import { useVault, VaultProvider } from './context/VaultContext'
 import { getOnboardingState, markOnboardingComplete, markPlanSeen, markWelcomeSeen } from './lib/onboarding'
 import { requestPersistentStorage } from './lib/persistence'
@@ -103,7 +104,9 @@ function Gate() {
   return (
     <DebtsProvider>
       <IndicadoresProvider>
-        <AppShell />
+        <PlansProvider>
+          <AppShell />
+        </PlansProvider>
       </IndicadoresProvider>
     </DebtsProvider>
   )

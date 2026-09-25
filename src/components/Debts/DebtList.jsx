@@ -5,6 +5,7 @@ import { useVault } from '../../context/VaultContext'
 import ConfirmPassphraseModal from '../ConfirmPassphraseModal'
 import { debtTypeIcon } from '../debtTypes'
 import { DEBT_TYPES } from '../../domain/debts'
+import EstimateNote from '../EstimateNote'
 import { ChartBarIcon, GridIcon, PlusIcon, TableIcon } from '../icons'
 import AmortizationTableModal from './AmortizationTableModal'
 import DebtFormModal from './DebtFormModal'
@@ -131,6 +132,7 @@ export default function DebtList() {
               onViewAmortization={setViewingAmortization}
             />
           )}
+          <EstimateNote className="mt-2" />
         </div>
       )}
 
