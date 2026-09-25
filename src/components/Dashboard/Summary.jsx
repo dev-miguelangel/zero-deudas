@@ -1,8 +1,9 @@
+import { useCurrencyDisplay } from '../../context/CurrencyDisplayContext'
 import { useIndicadores } from '../../context/IndicadoresContext'
 import { isHipotecario, toCLPEquivalent } from '../../domain/debts'
 import { currentMonthKey, monthLabelShort, shiftMonthKey } from '../../domain/payments'
 import { projectUpcomingPayments, simulate } from '../../domain/simulator'
-import { formatCurrency, formatMonths } from '../../lib/format'
+import { formatMonths } from '../../lib/format'
 import { debtTypeIcon, debtTypeLabel } from '../debtTypes'
 import EstimateNote from '../EstimateNote'
 import { TargetIcon } from '../icons'
@@ -12,6 +13,7 @@ const HORIZON_MONTHS = 6
 
 export default function Summary({ debts }) {
   const { data: indicadores } = useIndicadores()
+  const { formatAmount } = useCurrencyDisplay()
 
   if (debts.length === 0) {
     return (
@@ -40,7 +42,7 @@ export default function Summary({ debts }) {
     return {
       tipo,
       pendingUF,
-      subtotalValue: pendingUF ? 'Cargando UF…' : formatCurrency(subtotal),
+      subtotalValue: pendingUF ? 'Cargando UF…' : formatAmount(subtotal),
       monthsValue: errored ? '—' : formatMonths(months),
     }
   }).filter(Boolean)
@@ -119,7 +121,7 @@ export default function Summary({ debts }) {
                     </td>
                     {row.amounts.map((amount, i) => (
                       <td key={monthKeys[i]} className="p-2 text-right text-slate-900">
-                        {amount == null ? 'Cargando UF…' : formatCurrency(amount)}
+                        {amount == null ? 'Cargando UF…' : formatAmount(amount)}
                       </td>
                     ))}
                   </tr>
@@ -131,7 +133,7 @@ export default function Summary({ debts }) {
                 <td className="p-2 text-left">Total</td>
                 {projection.totals.map((total, i) => (
                   <td key={monthKeys[i]} className="p-2 text-right">
-                    {total == null ? 'Cargando UF…' : formatCurrency(total)}
+                    {total == null ? 'Cargando UF…' : formatAmount(total)}
                   </td>
                 ))}
               </tr>

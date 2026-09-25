@@ -1,7 +1,7 @@
+import { useCurrencyDisplay } from '../../context/CurrencyDisplayContext'
 import { useDebts } from '../../context/DebtsContext'
 import { useIndicadores } from '../../context/IndicadoresContext'
 import { allPayments, monthLabel } from '../../domain/payments'
-import { formatCurrency, formatUF } from '../../lib/format'
 import { debtTypeIcon, debtTypeLabel } from '../debtTypes'
 import { ListIcon } from '../icons'
 
@@ -11,6 +11,7 @@ function formatDay(iso) {
 
 export default function HistorialView() {
   const { debts } = useDebts()
+  const { formatAmount } = useCurrencyDisplay()
   const { data: indicadores } = useIndicadores()
   const ufValue = indicadores?.uf?.valor ?? null
 
@@ -62,7 +63,7 @@ export default function HistorialView() {
           <div className="rounded-md bg-slate-50 p-4">
             <p className="text-xs text-slate-500">Total pagado</p>
             <p className="mt-1 text-xl font-bold text-slate-900">
-              {unknownAmount ? '—' : formatCurrency(totalPagado)}
+              {unknownAmount ? '—' : formatAmount(totalPagado)}
             </p>
           </div>
           <div className="rounded-md bg-emerald-50 p-4">
@@ -84,7 +85,7 @@ export default function HistorialView() {
                 <h3 className="text-sm font-semibold text-slate-900">
                   {monthLabel(group.mes)}
                 </h3>
-                <span className="text-xs text-slate-500">{formatCurrency(subtotalClp)}</span>
+                <span className="text-xs text-slate-500">{formatAmount(subtotalClp)}</span>
               </div>
               <div className="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-200">
                 {group.rows.map((row) => {
@@ -109,7 +110,7 @@ export default function HistorialView() {
                         </div>
                       </div>
                       <p className="shrink-0 text-sm font-semibold text-slate-900">
-                        {hipotecario ? formatUF(row.monto) : formatCurrency(row.monto)}
+                        {formatAmount(row.monto, hipotecario ? 'UF' : 'CLP')}
                       </p>
                     </div>
                   )

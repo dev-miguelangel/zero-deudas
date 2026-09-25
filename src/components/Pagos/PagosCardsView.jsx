@@ -1,10 +1,11 @@
+import { useCurrencyDisplay } from '../../context/CurrencyDisplayContext'
 import { isHipotecario } from '../../domain/debts'
 import { isPaidForMonth } from '../../domain/payments'
-import { formatCurrency, formatUF } from '../../lib/format'
 import { debtTypeIcon, debtTypeLabel } from '../debtTypes'
 import { CheckCircleIcon, CheckIcon } from '../icons'
 
 export default function PagosCardsView({ debts, monthKey, isFutureMonth, onToggle }) {
+  const { formatAmount } = useCurrencyDisplay()
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {debts.map((debt) => {
@@ -33,10 +34,10 @@ export default function PagosCardsView({ debts, monthKey, isFutureMonth, onToggl
             </div>
 
             <p className={`mt-3 text-2xl font-bold ${paid ? 'text-emerald-700' : 'text-slate-900'}`}>
-              {hipotecario ? formatUF(monto) : formatCurrency(monto)}
+              {formatAmount(monto, hipotecario ? 'UF' : 'CLP')}
             </p>
             <p className="text-xs text-slate-500">
-              Saldo actual: {hipotecario ? formatUF(debt.saldo) : formatCurrency(debt.saldo)}
+              Saldo actual: {formatAmount(debt.saldo, hipotecario ? 'UF' : 'CLP')}
             </p>
 
             <button

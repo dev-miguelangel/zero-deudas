@@ -1,4 +1,4 @@
-import { formatCurrency } from '../../lib/format'
+import { useCurrencyDisplay } from '../../context/CurrencyDisplayContext'
 import { CloseIcon } from '../icons'
 import PlanResultPanel from './PlanResultPanel'
 
@@ -9,6 +9,7 @@ function formatDate(ts) {
 }
 
 export default function SavedPlanModal({ plan, onClose }) {
+  const { formatAmount } = useCurrencyDisplay()
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="flex h-[90vh] w-[90vw] flex-col overflow-y-auto rounded-lg bg-white p-6">
@@ -34,7 +35,7 @@ export default function SavedPlanModal({ plan, onClose }) {
           <PlanResultPanel
             title={
               <p className="text-sm font-medium text-slate-700">
-                Con {formatCurrency(plan.montoDisponible)}, te convenía
+                Con {formatAmount(plan.montoDisponible)}, te convenía
               </p>
             }
             allocations={plan.allocations}

@@ -1,9 +1,11 @@
+import { useCurrencyDisplay } from '../../context/CurrencyDisplayContext'
 import { minAbonoLegalClp } from '../../domain/paymentPlan'
-import { formatCurrency, formatRate } from '../../lib/format'
+import { formatRate } from '../../lib/format'
 import { debtTypeIcon } from '../debtTypes'
 import NumericInput from '../NumericInput'
 
 export default function PriorityOrderCards({ priorityOrder, ufValue, amounts, onChangeAmount, resultFor }) {
+  const { formatAmount } = useCurrencyDisplay()
   return (
     <ol className="mt-2 divide-y divide-slate-100 text-xs">
       {priorityOrder.map((debt, i) => {
@@ -26,7 +28,7 @@ export default function PriorityOrderCards({ priorityOrder, ufValue, amounts, on
               {formatRate(debt.tasaInteresAnual)}% anual
             </span>
             <span className="shrink-0 text-slate-400">
-              mín. {minimoClp != null ? formatCurrency(minimoClp) : '—'}
+              mín. {minimoClp != null ? formatAmount(minimoClp) : '—'}
             </span>
 
             <div className="ml-auto flex shrink-0 items-center gap-1.5">
@@ -47,16 +49,16 @@ export default function PriorityOrderCards({ priorityOrder, ufValue, amounts, on
                   <span className="font-medium text-emerald-700">Salda completa</span>
                 ) : (
                   <>
-                    Saldo {formatCurrency(resultado.saldoRestanteClp)}
+                    Saldo {formatAmount(resultado.saldoRestanteClp)}
                     {resultado.bajoMinimoLegal && (
                       <span className="text-amber-700"> · bajo el 10% mínimo legal</span>
                     )}
                   </>
                 )}
                 {resultado.interestSavedNetoClp != null &&
-                  ` · Ahorro neto ${formatCurrency(Math.max(0, resultado.interestSavedNetoClp))}`}
+                  ` · Ahorro neto ${formatAmount(Math.max(0, resultado.interestSavedNetoClp))}`}
                 {resultado.nuevaCuotaClp != null &&
-                  ` · Cuota nueva ${formatCurrency(resultado.nuevaCuotaClp)}`}
+                  ` · Cuota nueva ${formatAmount(resultado.nuevaCuotaClp)}`}
               </p>
             )}
           </li>

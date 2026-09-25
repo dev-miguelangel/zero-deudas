@@ -1,8 +1,10 @@
+import { useCurrencyDisplay } from '../../context/CurrencyDisplayContext'
 import { describeExclusionReason } from '../../domain/simulator'
-import { formatCurrency } from '../../lib/format'
 import EstimateNote from '../EstimateNote'
 
 export default function CombinedAmortizationTab({ selectedCount, result }) {
+  const { formatAmount } = useCurrencyDisplay()
+
   if (selectedCount === 0) {
     return (
       <p className="rounded-lg border border-slate-200 p-6 text-center text-sm text-slate-500">
@@ -39,13 +41,13 @@ export default function CombinedAmortizationTab({ selectedCount, result }) {
         <div className="rounded-md bg-slate-50 p-3">
           <p className="text-slate-500">Interés total combinado</p>
           <p className="mt-0.5 text-sm font-bold text-slate-900">
-            {formatCurrency(result.totalInterest)}
+            {formatAmount(result.totalInterest)}
           </p>
         </div>
         <div className="rounded-md bg-slate-50 p-3">
           <p className="text-slate-500">Cuota total (mes 1)</p>
           <p className="mt-0.5 text-sm font-bold text-slate-900">
-            {formatCurrency(result.amortization[0].interest + result.amortization[0].principal)}
+            {formatAmount(result.amortization[0].interest + result.amortization[0].principal)}
           </p>
         </div>
       </div>
@@ -83,19 +85,19 @@ export default function CombinedAmortizationTab({ selectedCount, result }) {
                   <td
                     className={`p-2 text-right ${isCurrent ? 'text-emerald-800' : 'text-slate-700'}`}
                   >
-                    {formatCurrency(row.interest)}
+                    {formatAmount(row.interest)}
                   </td>
                   <td
                     className={`p-2 text-right ${isCurrent ? 'text-emerald-800' : 'text-slate-700'}`}
                   >
-                    {formatCurrency(row.principal)}
+                    {formatAmount(row.principal)}
                   </td>
                   <td
                     className={`p-2 text-right font-medium ${
                       isCurrent ? 'text-emerald-900' : 'text-slate-900'
                     }`}
                   >
-                    {formatCurrency(row.balance)}
+                    {formatAmount(row.balance)}
                   </td>
                 </tr>
               )

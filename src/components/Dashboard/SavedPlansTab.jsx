@@ -1,7 +1,7 @@
 import { useState } from 'react'
+import { useCurrencyDisplay } from '../../context/CurrencyDisplayContext'
 import { usePlans } from '../../context/PlansContext'
 import { summarizePlanComparison } from '../../domain/paymentPlan'
-import { formatCurrency } from '../../lib/format'
 import EstimateNote from '../EstimateNote'
 import { TrashIcon } from '../icons'
 import SavedPlanModal from './SavedPlanModal'
@@ -14,6 +14,7 @@ function formatDate(ts) {
 
 export default function SavedPlansTab() {
   const { plans, removePlan } = usePlans()
+  const { formatAmount } = useCurrencyDisplay()
   const [openId, setOpenId] = useState(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState(null)
 
@@ -93,19 +94,19 @@ export default function SavedPlansTab() {
                       <div className="flex items-center justify-between">
                         <span className="text-slate-500">Actual</span>
                         <span className="text-slate-600">
-                          {formatCurrency(summary.actual.pagoTotalClp)}
+                          {formatAmount(summary.actual.pagoTotalClp)}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-slate-500">Con plan aplicado</span>
                         <span className="font-medium text-slate-900">
-                          {formatCurrency(summary.plan.pagoTotalClp)}
+                          {formatAmount(summary.plan.pagoTotalClp)}
                         </span>
                       </div>
                       <div className="flex items-center justify-between border-t border-slate-100 pt-1">
                         <span className="text-slate-500">Ahorro</span>
                         <span className="font-semibold text-emerald-700">
-                          {formatCurrency(summary.ahorroClp)}
+                          {formatAmount(summary.ahorroClp)}
                         </span>
                       </div>
                     </div>

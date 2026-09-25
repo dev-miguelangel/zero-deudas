@@ -1,7 +1,7 @@
 import { useState } from 'react'
+import { useCurrencyDisplay } from '../../context/CurrencyDisplayContext'
 import { usePlans } from '../../context/PlansContext'
 import { buildPaymentPlan, snapshotAllocations } from '../../domain/paymentPlan'
-import { formatCurrency } from '../../lib/format'
 import { InfoIcon } from '../icons'
 import NumericInput from '../NumericInput'
 import NormativaModal from './NormativaModal'
@@ -63,6 +63,7 @@ function StepHeading({ number, title, caption }) {
 
 export default function PaymentPlanTab({ debts, ufValue }) {
   const { savePlan } = usePlans()
+  const { formatAmount } = useCurrencyDisplay()
   const [montoDisponible, setMontoDisponible] = useState('')
   const [showNormativa, setShowNormativa] = useState(false)
   const [objetivo, setObjetivo] = useState('interes')
@@ -97,10 +98,10 @@ export default function PaymentPlanTab({ debts, ufValue }) {
                   ? []
                   : o.id === 'flujo'
                     ? [
-                        `Liberas ${formatCurrency(totalMonthlyReliefClp(totalPlan))}/mes`,
-                        `Ahorro total: ${formatCurrency(totalAccumulatedSavingsFlujoClp(totalPlan))}`,
+                        `Liberas ${formatAmount(totalMonthlyReliefClp(totalPlan))}/mes`,
+                        `Ahorro total: ${formatAmount(totalAccumulatedSavingsFlujoClp(totalPlan))}`,
                       ]
-                    : [`Ahorras ${formatCurrency(totalInterestSavingsClp(totalPlan))}`]
+                    : [`Ahorras ${formatAmount(totalInterestSavingsClp(totalPlan))}`]
                 return (
                   <button
                     key={o.id}
@@ -167,7 +168,7 @@ export default function PaymentPlanTab({ debts, ufValue }) {
             title={
               <StepHeading
                 number={3}
-                title={`Con ${formatCurrency(Number(montoDisponible))}, te conviene`}
+                title={`Con ${formatAmount(Number(montoDisponible))}, te conviene`}
                 caption="Reparto automático de ese monto entre las deudas seleccionadas, siguiendo el orden de prioridad de abajo."
               />
             }

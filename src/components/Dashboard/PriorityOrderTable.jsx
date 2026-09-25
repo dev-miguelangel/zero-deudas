@@ -1,9 +1,11 @@
+import { useCurrencyDisplay } from '../../context/CurrencyDisplayContext'
 import { minAbonoLegalClp } from '../../domain/paymentPlan'
-import { formatCurrency, formatRate } from '../../lib/format'
+import { formatRate } from '../../lib/format'
 import { debtTypeIcon } from '../debtTypes'
 import NumericInput from '../NumericInput'
 
 export default function PriorityOrderTable({ priorityOrder, ufValue, amounts, onChangeAmount, resultFor }) {
+  const { formatAmount } = useCurrencyDisplay()
   return (
     <div className="mt-2 overflow-x-auto rounded-lg border border-slate-200">
       <table className="w-full min-w-[640px] text-xs">
@@ -40,7 +42,7 @@ export default function PriorityOrderTable({ priorityOrder, ufValue, amounts, on
                   {formatRate(debt.tasaInteresAnual)}%
                 </td>
                 <td className="p-2 text-right text-slate-500">
-                  {minimoClp != null ? formatCurrency(minimoClp) : '—'}
+                  {minimoClp != null ? formatAmount(minimoClp) : '—'}
                 </td>
                 <td className="p-2 text-right">
                   <NumericInput
@@ -56,17 +58,17 @@ export default function PriorityOrderTable({ priorityOrder, ufValue, amounts, on
                       {resultado.fullyPaid ? (
                         <span className="font-medium text-emerald-700">Salda completa</span>
                       ) : (
-                        <>Saldo {formatCurrency(resultado.saldoRestanteClp)}</>
+                        <>Saldo {formatAmount(resultado.saldoRestanteClp)}</>
                       )}
                       {resultado.interestSavedNetoClp != null && (
                         <span>
                           {' '}
                           · Ahorro neto{' '}
-                          {formatCurrency(Math.max(0, resultado.interestSavedNetoClp))}
+                          {formatAmount(Math.max(0, resultado.interestSavedNetoClp))}
                         </span>
                       )}
                       {resultado.nuevaCuotaClp != null && (
-                        <span> · Cuota nueva {formatCurrency(resultado.nuevaCuotaClp)}</span>
+                        <span> · Cuota nueva {formatAmount(resultado.nuevaCuotaClp)}</span>
                       )}
                       {resultado.bajoMinimoLegal && (
                         <span className="text-amber-700"> · bajo el mínimo legal</span>

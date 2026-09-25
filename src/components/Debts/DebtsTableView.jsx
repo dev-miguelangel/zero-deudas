@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
+import { useCurrencyDisplay } from '../../context/CurrencyDisplayContext'
 import { debtCalculatedSummary, isHipotecario, matchesAcreedorOrAlias } from '../../domain/debts'
 import { describeSimulationError, simulate } from '../../domain/simulator'
-import { formatCurrency, formatMonthsShort, formatRate, formatUF } from '../../lib/format'
+import { formatMonthsShort, formatRate } from '../../lib/format'
 import { compareValues } from '../../lib/sort'
 import { debtTypeColor, debtTypeIcon, debtTypeLabel } from '../debtTypes'
 import { PencilIcon, TableIcon, TrashIcon } from '../icons'
@@ -20,6 +21,7 @@ const COLUMNS = [
 ]
 
 export default function DebtsTableView({ debts, ufValue, onEdit, onDelete, onViewAmortization }) {
+  const { mode, formatAmount: ctxFormatAmount } = useCurrencyDisplay()
   const [search, setSearch] = useState('')
   const [sortKey, setSortKey] = useState('acreedor')
   const [sortDir, setSortDir] = useState('asc')
@@ -29,7 +31,8 @@ export default function DebtsTableView({ debts, ufValue, onEdit, onDelete, onVie
       .filter((debt) => matchesAcreedorOrAlias(debt, search))
       .map((debt) => {
         const hipotecario = isHipotecario(debt)
-        const formatAmount = hipotecario ? formatUF : formatCurrency
+        const debtCurrency = hipotecario ? 'UF' : 'CLP'
+        const formatAmount = (amount) => ctxFormatAmount(amount, debtCurrency)
         const summary = debtCalculatedSummary(debt)
         const payoff = simulate(debt)
         // Para ordenar montos de forma justa entre CLP y UF, todo se compara
@@ -56,7 +59,7 @@ export default function DebtsTableView({ debts, ufValue, onEdit, onDelete, onVie
         }
       })
       .sort((a, b) => compareValues(a.sortValues[sortKey], b.sortValues[sortKey], sortDir))
-  }, [debts, ufValue, search, sortKey, sortDir])
+  }, [debts, ufValue, search, sortKey, sortDir, ctxFormatAmount])
 
   function handleSort(key) {
     if (key === sortKey) {
@@ -120,9 +123,9 @@ export default function DebtsTableView({ debts, ufValue, onEdit, onDelete, onVie
                       <span className="font-semibold text-slate-900">
                         {formatAmount(summary.saldo)}
                       </span>
-                      {hipotecario && (
+                      {hipotecario && mode === 'original' && (
                         <p className="text-xs text-slate-400">
-                          {ufValue ? `≈ ${formatCurrency(summary.saldo * ufValue)}` : 'Cargando UF…'}
+                          {ufValue ? `≈ ${ctxFormatAmount(summary.saldo * ufValue)}` : 'Cargando UF…'}
                         </p>
                       )}
                     </td>

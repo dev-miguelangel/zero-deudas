@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
+import { useCurrencyDisplay } from '../../context/CurrencyDisplayContext'
 import { isHipotecario, matchesAcreedorOrAlias } from '../../domain/debts'
 import { isPaidForMonth } from '../../domain/payments'
-import { formatCurrency, formatUF } from '../../lib/format'
 import { compareValues } from '../../lib/sort'
 import { debtTypeIcon, debtTypeLabel } from '../debtTypes'
 import { CheckCircleIcon, CheckIcon } from '../icons'
@@ -18,6 +18,7 @@ const COLUMNS = [
 ]
 
 export default function PagosTableView({ debts, monthKey, isFutureMonth, ufValue, onToggle }) {
+  const { formatAmount: ctxFormatAmount } = useCurrencyDisplay()
   const [search, setSearch] = useState('')
   const [sortKey, setSortKey] = useState('acreedor')
   const [sortDir, setSortDir] = useState('asc')
@@ -30,7 +31,7 @@ export default function PagosTableView({ debts, monthKey, isFutureMonth, ufValue
         const hipotecario = isHipotecario(debt)
         const record = paid ? debt.pagos.find((p) => p.mes === monthKey) : null
         const monto = record ? record.monto : debt.pagoMinimo
-        const formatAmount = hipotecario ? formatUF : formatCurrency
+        const formatAmount = (amount) => ctxFormatAmount(amount, hipotecario ? 'UF' : 'CLP')
         const toCLP = (v) => (hipotecario ? (ufValue ? v * ufValue : null) : v)
 
         return {
@@ -49,7 +50,7 @@ export default function PagosTableView({ debts, monthKey, isFutureMonth, ufValue
         }
       })
       .sort((a, b) => compareValues(a.sortValues[sortKey], b.sortValues[sortKey], sortDir))
-  }, [debts, monthKey, ufValue, search, sortKey, sortDir])
+  }, [debts, monthKey, ufValue, search, sortKey, sortDir, ctxFormatAmount])
 
   function handleSort(key) {
     if (key === sortKey) {

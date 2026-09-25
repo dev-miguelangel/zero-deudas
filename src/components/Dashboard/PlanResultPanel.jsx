@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { formatCurrency } from '../../lib/format'
+import { useCurrencyDisplay } from '../../context/CurrencyDisplayContext'
 import { GridIcon, TableIcon } from '../icons'
 import PaymentPlanCards from './PaymentPlanCards'
 import PaymentPlanTable from './PaymentPlanTable'
@@ -24,6 +24,7 @@ export default function PlanResultPanel({
   sobranteClp,
   ufValue,
 }) {
+  const { formatAmount } = useCurrencyDisplay()
   const [view, setView] = useState('table')
 
   return (
@@ -74,7 +75,7 @@ export default function PlanResultPanel({
         {sobranteClp > 0 && (
           <p className="rounded-md bg-emerald-50 p-3 text-xs text-emerald-800">
             Con ese monto alcanza para saldar por completo todas las deudas seleccionadas — te
-            sobran {formatCurrency(sobranteClp)}.
+            sobran {formatAmount(sobranteClp)}.
           </p>
         )}
 

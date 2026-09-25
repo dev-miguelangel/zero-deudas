@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useCurrencyDisplay } from '../../context/CurrencyDisplayContext'
 import { useDebts } from '../../context/DebtsContext'
 import { useIndicadores } from '../../context/IndicadoresContext'
 import { isHipotecario } from '../../domain/debts'
@@ -11,7 +12,6 @@ import {
   shiftMonthKey,
   unmarkLastPaid,
 } from '../../domain/payments'
-import { formatCurrency } from '../../lib/format'
 import { CheckCircleIcon, ChevronLeftIcon, ChevronRightIcon, GridIcon, TableIcon } from '../icons'
 import PagosCardsView from './PagosCardsView'
 import PagosTableView from './PagosTableView'
@@ -23,6 +23,7 @@ const VIEWS = [
 
 export default function PagosView() {
   const { debts, updateDebt } = useDebts()
+  const { formatAmount } = useCurrencyDisplay()
   const { data: indicadores } = useIndicadores()
   const ufValue = indicadores?.uf?.valor ?? null
   const [monthKey, setMonthKey] = useState(currentMonthKey())
@@ -112,19 +113,19 @@ export default function PagosView() {
           <div className="rounded-md bg-slate-50 p-4">
             <p className="text-xs text-slate-500">Total del mes</p>
             <p className="mt-1 text-xl font-bold text-slate-900">
-              {unknownAmount ? '—' : formatCurrency(totalMes)}
+              {unknownAmount ? '—' : formatAmount(totalMes)}
             </p>
           </div>
           <div className="rounded-md bg-emerald-50 p-4">
             <p className="text-xs text-emerald-700">Pagado</p>
             <p className="mt-1 text-xl font-bold text-emerald-700">
-              {unknownAmount ? '—' : formatCurrency(pagadoMes)}
+              {unknownAmount ? '—' : formatAmount(pagadoMes)}
             </p>
           </div>
           <div className="rounded-md bg-slate-50 p-4">
             <p className="text-xs text-slate-500">Pendiente</p>
             <p className="mt-1 text-xl font-bold text-slate-900">
-              {unknownAmount ? '—' : formatCurrency(pendienteMes)}
+              {unknownAmount ? '—' : formatAmount(pendienteMes)}
             </p>
           </div>
         </div>

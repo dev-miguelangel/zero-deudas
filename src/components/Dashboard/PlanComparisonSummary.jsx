@@ -1,7 +1,10 @@
+import { useCurrencyDisplay } from '../../context/CurrencyDisplayContext'
 import { summarizePlanComparison } from '../../domain/paymentPlan'
-import { formatCurrency } from '../../lib/format'
+
+const UNIT_LABEL = { original: 'CLP', CLP: 'CLP', UF: 'UF', USD: 'Dólar' }
 
 export default function PlanComparisonSummary({ allocations, objetivo, ufValue }) {
+  const { mode, formatAmount } = useCurrencyDisplay()
   if (allocations.length === 0) return null
 
   const summary = summarizePlanComparison(allocations, objetivo, ufValue)
@@ -36,7 +39,7 @@ export default function PlanComparisonSummary({ allocations, objetivo, ufValue }
         <table className="w-full min-w-[480px] text-sm">
           <thead>
             <tr className="bg-slate-50 text-xs text-slate-500">
-              <th className="p-2 text-left font-medium">Métrica (CLP)</th>
+              <th className="p-2 text-left font-medium">Métrica ({UNIT_LABEL[mode]})</th>
               <th className="p-2 text-right font-medium">Actual</th>
               <th className="p-2 text-right font-medium">Con plan aplicado</th>
               <th className="p-2 text-right font-medium">Ahorro</th>
@@ -50,16 +53,16 @@ export default function PlanComparisonSummary({ allocations, objetivo, ufValue }
                 >
                   {row.label}
                 </td>
-                <td className="p-2 text-right text-slate-500">{formatCurrency(row.actual)}</td>
+                <td className="p-2 text-right text-slate-500">{formatAmount(row.actual)}</td>
                 <td className="p-2 text-right font-medium text-slate-900">
-                  {formatCurrency(row.plan)}
+                  {formatAmount(row.plan)}
                 </td>
                 <td
                   className={`p-2 text-right font-semibold ${
                     row.ahorro > 0 ? 'text-emerald-700' : 'text-slate-400'
                   } ${row.highlight ? 'text-base' : ''}`}
                 >
-                  {formatCurrency(row.ahorro)}
+                  {formatAmount(row.ahorro)}
                 </td>
               </tr>
             ))}

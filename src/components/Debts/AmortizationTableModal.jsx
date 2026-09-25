@@ -1,15 +1,16 @@
 import { useState } from 'react'
+import { useCurrencyDisplay } from '../../context/CurrencyDisplayContext'
 import { isHipotecario } from '../../domain/debts'
 import { describeSimulationError, simulate, simulateHistorical } from '../../domain/simulator'
-import { formatCurrency, formatUF } from '../../lib/format'
 import EstimateNote from '../EstimateNote'
 import { CloseIcon, InfoIcon } from '../icons'
 
 export default function AmortizationTableModal({ debt, ufValue, onClose }) {
+  const { mode, formatAmount: ctxFormatAmount } = useCurrencyDisplay()
   const [showLegend, setShowLegend] = useState(true)
   const [showPaidRows, setShowPaidRows] = useState(false)
   const hipotecario = isHipotecario(debt)
-  const formatAmount = hipotecario ? formatUF : formatCurrency
+  const formatAmount = (amount) => ctxFormatAmount(amount, hipotecario ? 'UF' : 'CLP')
   const result = simulate(debt)
   // La simulación solo proyecta hacia adelante desde el saldo de hoy, así
   // que las cuotas ya pagadas no aparecen como filas (ya están reflejadas
@@ -61,9 +62,9 @@ export default function AmortizationTableModal({ debt, ufValue, onClose }) {
                 <p className="mt-0.5 text-sm font-bold text-slate-900">
                   {formatAmount(debt.pagoMinimo)}
                 </p>
-                {hipotecario && (
+                {hipotecario && mode === 'original' && (
                   <p className="mt-0.5 text-slate-400">
-                    {ufValue ? `≈ ${formatCurrency(debt.pagoMinimo * ufValue)}` : 'Cargando UF…'}
+                    {ufValue ? `≈ ${ctxFormatAmount(debt.pagoMinimo * ufValue)}` : 'Cargando UF…'}
                   </p>
                 )}
               </div>

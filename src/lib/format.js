@@ -6,6 +6,10 @@ export function formatUF(amount) {
   return `${new Intl.NumberFormat('es-CL', { maximumFractionDigits: 2 }).format(amount)} UF`
 }
 
+export function formatUSD(amount) {
+  return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'USD' }).format(amount)
+}
+
 /** Una tasa de interés siempre se muestra con máximo 2 decimales (sin ceros de más). */
 export function formatRate(value) {
   if (value == null || !Number.isFinite(value)) return '—'

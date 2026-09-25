@@ -1,4 +1,5 @@
-import { formatCurrency, formatMonthsShort } from '../../lib/format'
+import { useCurrencyDisplay } from '../../context/CurrencyDisplayContext'
+import { formatMonthsShort } from '../../lib/format'
 
 function RecomendadoBadge() {
   return (
@@ -9,6 +10,7 @@ function RecomendadoBadge() {
 }
 
 export default function PaymentPlanCards({ allocations, objetivo = 'interes' }) {
+  const { formatAmount } = useCurrencyDisplay()
   return (
     <div className="space-y-2">
       {allocations.map((allocation, i) => {
@@ -21,7 +23,7 @@ export default function PaymentPlanCards({ allocations, objetivo = 'interes' }) 
               {objetivo === 'interes' && <RecomendadoBadge />}
             </div>
             <p className="mt-0.5 text-xs text-emerald-700">
-              Ahorro bruto en intereses: {formatCurrency(allocation.interestSavedClp)}
+              Ahorro bruto en intereses: {formatAmount(allocation.interestSavedClp)}
               {allocation.monthsSaved > 0
                 ? ` (y ${formatMonthsShort(allocation.monthsSaved)} menos de plazo)`
                 : ''}
@@ -29,11 +31,11 @@ export default function PaymentPlanCards({ allocations, objetivo = 'interes' }) 
             </p>
             <p className="mt-0.5 text-xs text-slate-500">
               Comisión de prepago estimada ({allocation.debt.tipo === 'CH' ? '1,5' : '1'} mes
-              de interés sobre el abono): {formatCurrency(allocation.comisionClp)}
+              de interés sobre el abono): {formatAmount(allocation.comisionClp)}
             </p>
             <p className="mt-0.5 text-xs font-semibold text-emerald-800">
               Ahorro neto (descontando la comisión):{' '}
-              {formatCurrency(Math.max(0, allocation.interestSavedNetoClp))}
+              {formatAmount(Math.max(0, allocation.interestSavedNetoClp))}
             </p>
           </div>
         )
@@ -48,18 +50,18 @@ export default function PaymentPlanCards({ allocations, objetivo = 'interes' }) 
             </div>
             <p className="mt-0.5 text-xs text-slate-600">
               Con la misma tasa y las mismas {allocation.before.months} cuotas que te
-              quedaban, tu cuota bajaría de {formatCurrency(allocation.cuotaActualClp)} a{' '}
-              <strong>{formatCurrency(allocation.nuevaCuotaClp)}</strong>.
+              quedaban, tu cuota bajaría de {formatAmount(allocation.cuotaActualClp)} a{' '}
+              <strong>{formatAmount(allocation.nuevaCuotaClp)}</strong>.
             </p>
             <p className="mt-0.5 text-xs text-emerald-700">
-              Liberas {formatCurrency(allocation.ahorroCuotaMensualClp)}/mes de flujo de
+              Liberas {formatAmount(allocation.ahorroCuotaMensualClp)}/mes de flujo de
               caja.
             </p>
             {allocation.interestSavedCuotaClp != null && (
               <p className="mt-0.5 text-xs text-emerald-700">
-                Ahorro bruto en intereses: {formatCurrency(allocation.interestSavedCuotaClp)}{' '}
+                Ahorro bruto en intereses: {formatAmount(allocation.interestSavedCuotaClp)}{' '}
                 (menos que la Opción 1, que ahorra{' '}
-                {formatCurrency(allocation.interestSavedClp)}).
+                {formatAmount(allocation.interestSavedClp)}).
               </p>
             )}
           </div>
@@ -77,7 +79,7 @@ export default function PaymentPlanCards({ allocations, objetivo = 'interes' }) 
                   {allocation.debt.alias ? ` · ${allocation.debt.alias}` : ''}
                 </p>
                 <p className="mt-0.5 text-xs text-slate-500">
-                  Abono: {formatCurrency(allocation.appliedClp)}
+                  Abono: {formatAmount(allocation.appliedClp)}
                 </p>
               </div>
               <span
@@ -93,14 +95,14 @@ export default function PaymentPlanCards({ allocations, objetivo = 'interes' }) 
 
             {!allocation.fullyPaid && (
               <p className="mt-1.5 text-xs text-slate-500">
-                Queda con saldo de {formatCurrency(allocation.saldoRestanteClp)}.
+                Queda con saldo de {formatAmount(allocation.saldoRestanteClp)}.
               </p>
             )}
 
             {allocation.bajoMinimoLegal && (
               <p className="mt-1.5 text-xs text-amber-700">
                 Este abono queda bajo el 10% mínimo legal (
-                {formatCurrency(allocation.montoMinimoClp)}) — el banco no está obligado a
+                {formatAmount(allocation.montoMinimoClp)}) — el banco no está obligado a
                 aceptarlo como abono parcial, aunque muchos igual lo hacen. Conviene
                 confirmarlo antes con tu ejecutivo.
               </p>

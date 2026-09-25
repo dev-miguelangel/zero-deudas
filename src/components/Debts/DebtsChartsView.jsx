@@ -1,13 +1,14 @@
 import { useState } from 'react'
+import { useCurrencyDisplay } from '../../context/CurrencyDisplayContext'
 import { DEBT_TYPES, isHipotecario, toCLPEquivalent } from '../../domain/debts'
 import { projectUpcomingPayments } from '../../domain/simulator'
-import { formatCurrency } from '../../lib/format'
 import { debtTypeColor, debtTypeLabel } from '../debtTypes'
 import DonutChart from '../DonutChart'
 
 const TYPE_ORDER = DEBT_TYPES.map((t) => t.id)
 
 export default function DebtsChartsView({ debts, ufValue }) {
+  const { formatAmount } = useCurrencyDisplay()
   const [excludedTypes, setExcludedTypes] = useState(() => new Set())
   const [excludedMonthTypes, setExcludedMonthTypes] = useState(() => new Set())
   const pendingUF = debts.some((d) => isHipotecario(d) && !ufValue)
@@ -32,7 +33,7 @@ export default function DebtsChartsView({ debts, ufValue }) {
       id: tipo,
       label: debtTypeLabel(tipo),
       value,
-      valueLabel: formatCurrency(value),
+      valueLabel: formatAmount(value),
       color: debtTypeColor(tipo),
     }))
     .sort((a, b) => b.value - a.value)
@@ -65,7 +66,7 @@ export default function DebtsChartsView({ debts, ufValue }) {
       id: row.tipo,
       label: debtTypeLabel(row.tipo),
       value: row.amounts[0] ?? 0,
-      valueLabel: formatCurrency(row.amounts[0] ?? 0),
+      valueLabel: formatAmount(row.amounts[0] ?? 0),
       color: debtTypeColor(row.tipo),
     }))
     .sort((a, b) => b.value - a.value)
@@ -95,7 +96,7 @@ export default function DebtsChartsView({ debts, ufValue }) {
           <div className="mt-5">
             <DonutChart
               segments={donutSegments}
-              totalLabel={formatCurrency(visibleTotalSaldo)}
+              totalLabel={formatAmount(visibleTotalSaldo)}
               showValues={false}
               showPercent
               excludedIds={excludedTypes}
@@ -112,7 +113,7 @@ export default function DebtsChartsView({ debts, ufValue }) {
           <div className="mt-5">
             <DonutChart
               segments={monthSegments}
-              totalLabel={formatCurrency(visibleMonthTotal)}
+              totalLabel={formatAmount(visibleMonthTotal)}
               showValues={false}
               showPercent
               excludedIds={excludedMonthTypes}
@@ -140,7 +141,7 @@ export default function DebtsChartsView({ debts, ufValue }) {
                   </span>
                 </span>
                 <span className="shrink-0 font-semibold text-slate-900">
-                  {formatCurrency(group.saldo)}
+                  {formatAmount(group.saldo)}
                 </span>
               </div>
               <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-slate-100">

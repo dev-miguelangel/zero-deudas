@@ -1,10 +1,12 @@
+import { useCurrencyDisplay } from '../../context/CurrencyDisplayContext'
 import { DEBT_TYPES, debtCalculatedSummary, isHipotecario } from '../../domain/debts'
 import { describeSimulationError, simulate } from '../../domain/simulator'
-import { formatCurrency, formatMonthsShort, formatRate, formatUF } from '../../lib/format'
+import { formatMonthsShort, formatRate } from '../../lib/format'
 import { debtTypeIcon } from '../debtTypes'
 import { PencilIcon, TableIcon, TrashIcon } from '../icons'
 
 export default function DebtsCardsView({ debts, ufValue, onEdit, onDelete, onViewAmortization }) {
+  const { mode, formatAmount: ctxFormatAmount } = useCurrencyDisplay()
   return (
     <div className="space-y-6">
       {DEBT_TYPES.map((type) => {
@@ -25,7 +27,7 @@ export default function DebtsCardsView({ debts, ufValue, onEdit, onDelete, onVie
                 const payoff = simulate(debt)
                 const hipotecario = isHipotecario(debt)
                 const summary = debtCalculatedSummary(debt)
-                const formatAmount = hipotecario ? formatUF : formatCurrency
+                const formatAmount = (amount) => ctxFormatAmount(amount, hipotecario ? 'UF' : 'CLP')
                 return (
                   <div key={debt.id} className="rounded-lg border border-slate-200 p-4">
                     <div className="flex items-start justify-between">
@@ -93,10 +95,10 @@ export default function DebtsCardsView({ debts, ufValue, onEdit, onDelete, onVie
                             : '—'}
                         </dd>
                       </dl>
-                      {hipotecario && (
+                      {hipotecario && mode === 'original' && (
                         <p className="mt-2 text-xs text-slate-400">
                           {ufValue
-                            ? `Saldo ≈ ${formatCurrency(summary.saldo * ufValue)} en pesos`
+                            ? `Saldo ≈ ${ctxFormatAmount(summary.saldo * ufValue)} en pesos`
                             : 'Cargando valor de la UF…'}
                         </p>
                       )}

@@ -1,6 +1,7 @@
-import { formatCurrency } from '../../lib/format'
+import { useCurrencyDisplay } from '../../context/CurrencyDisplayContext'
 
 export default function PaymentPlanTable({ allocations, objetivo = 'interes' }) {
+  const { formatAmount } = useCurrencyDisplay()
   const opcion1Highlight = objetivo === 'interes' ? 'bg-emerald-50' : ''
   const opcion2Highlight = objetivo === 'flujo' ? 'bg-emerald-50' : ''
 
@@ -41,7 +42,7 @@ export default function PaymentPlanTable({ allocations, objetivo = 'interes' }) 
                 )}
               </td>
               <td className="p-2 text-right text-slate-700">
-                {formatCurrency(allocation.appliedClp)}
+                {formatAmount(allocation.appliedClp)}
               </td>
               <td className="p-2 text-center">
                 <span
@@ -55,21 +56,21 @@ export default function PaymentPlanTable({ allocations, objetivo = 'interes' }) 
                 </span>
               </td>
               <td className="p-2 text-right text-slate-700">
-                {formatCurrency(allocation.saldoRestanteClp)}
+                {formatAmount(allocation.saldoRestanteClp)}
               </td>
               <td className={`p-2 text-right font-medium text-emerald-700 ${opcion1Highlight}`}>
                 {allocation.interestSavedNetoClp != null
-                  ? formatCurrency(Math.max(0, allocation.interestSavedNetoClp))
+                  ? formatAmount(Math.max(0, allocation.interestSavedNetoClp))
                   : '—'}
               </td>
               <td className={`p-2 text-right text-slate-700 ${opcion2Highlight}`}>
                 {allocation.nuevaCuotaClp != null
-                  ? formatCurrency(allocation.nuevaCuotaClp)
+                  ? formatAmount(allocation.nuevaCuotaClp)
                   : '—'}
               </td>
               <td className={`p-2 text-right text-emerald-700 ${opcion2Highlight}`}>
                 {allocation.interestSavedCuotaClp != null
-                  ? formatCurrency(allocation.interestSavedCuotaClp)
+                  ? formatAmount(allocation.interestSavedCuotaClp)
                   : '—'}
               </td>
             </tr>

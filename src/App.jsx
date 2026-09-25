@@ -12,6 +12,7 @@ import PagosView from './components/Pagos/PagosView'
 import ProfileCreateForm from './components/profiles/ProfileCreateForm'
 import ProfileSelect from './components/profiles/ProfileSelect'
 import ProfileUnlockForm from './components/profiles/ProfileUnlockForm'
+import { CurrencyDisplayProvider } from './context/CurrencyDisplayContext'
 import { DebtsProvider, useDebts } from './context/DebtsContext'
 import { IndicadoresProvider } from './context/IndicadoresContext'
 import { PlansProvider } from './context/PlansContext'
@@ -104,9 +105,11 @@ function Gate() {
   return (
     <DebtsProvider>
       <IndicadoresProvider>
-        <PlansProvider>
-          <AppShell />
-        </PlansProvider>
+        <CurrencyDisplayProvider>
+          <PlansProvider>
+            <AppShell />
+          </PlansProvider>
+        </CurrencyDisplayProvider>
       </IndicadoresProvider>
     </DebtsProvider>
   )
