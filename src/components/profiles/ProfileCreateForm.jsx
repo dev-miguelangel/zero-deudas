@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import { useVault } from '../../context/VaultContext'
 import { AVATARS } from '../avatars'
+import { PlusIcon, UploadIcon } from '../icons'
 import AvatarPicker from './AvatarPicker'
+import ImportProfileModal from './ImportProfileModal'
 
 export default function ProfileCreateForm() {
   const { createProfile, backToSelect, error, profiles } = useVault()
+  const [mode, setMode] = useState('choice') // 'choice' | 'scratch' | 'import'
   const [name, setName] = useState('')
   const [avatarId, setAvatarId] = useState(AVATARS[0].id)
   const [passphrase, setPassphrase] = useState('')
@@ -33,6 +36,64 @@ export default function ProfileCreateForm() {
       return
     }
     createProfile(trimmedName, passphrase, avatarId)
+  }
+
+  if (mode === 'choice') {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-slate-50 px-6">
+        <div className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-8">
+          <h1 className="text-xl font-bold text-slate-900">Nuevo perfil</h1>
+          <p className="mt-2 text-sm text-slate-600">
+            ¿Tienes un archivo <strong>.zero</strong> con tus datos, o prefieres partir de cero?
+          </p>
+
+          <div className="mt-6 space-y-3">
+            <button
+              type="button"
+              onClick={() => setMode('import')}
+              className="flex w-full items-start gap-3 rounded-md border border-slate-300 px-4 py-3 text-left hover:border-slate-400 hover:bg-slate-50"
+            >
+              <UploadIcon className="mt-0.5 h-5 w-5 shrink-0 text-slate-500" />
+              <span>
+                <span className="block text-sm font-semibold text-slate-900">
+                  Tengo un archivo .zero
+                </span>
+                <span className="block text-xs text-slate-500">
+                  Trae tus deudas desde otro dispositivo
+                </span>
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('scratch')}
+              className="flex w-full items-start gap-3 rounded-md border border-slate-300 px-4 py-3 text-left hover:border-slate-400 hover:bg-slate-50"
+            >
+              <PlusIcon className="mt-0.5 h-5 w-5 shrink-0 text-slate-500" />
+              <span>
+                <span className="block text-sm font-semibold text-slate-900">
+                  Quiero partir de cero
+                </span>
+                <span className="block text-xs text-slate-500">
+                  Te guiamos paso a paso para agregar tus deudas
+                </span>
+              </span>
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={backToSelect}
+            className="mt-6 w-full text-center text-sm font-semibold text-slate-500 hover:text-slate-700"
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (mode === 'import') {
+    return <ImportProfileModal onClose={() => setMode('choice')} />
   }
 
   return (
@@ -96,10 +157,10 @@ export default function ProfileCreateForm() {
           <div className="flex gap-2 pt-2">
             <button
               type="button"
-              onClick={backToSelect}
+              onClick={() => setMode('choice')}
               className="w-full rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700"
             >
-              Cancelar
+              Atrás
             </button>
             <button
               type="submit"

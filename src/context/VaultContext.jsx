@@ -1,5 +1,6 @@
 import { createContext, useContext, useMemo, useState } from 'react'
 import { decryptJSON, deriveKey, encryptJSON, generateSalt } from '../lib/crypto'
+import { clearOnboarding } from '../lib/onboarding'
 import { addProfile, listProfiles, removeProfileRecord, updateProfileRecord } from '../lib/profiles'
 import { clearProfileData } from '../lib/secureStorage'
 
@@ -81,6 +82,7 @@ export function VaultProvider({ children }) {
       },
       removeProfile(id) {
         clearProfileData(id)
+        clearOnboarding(id)
         setProfiles(removeProfileRecord(id))
         if (activeProfileId === id) {
           setActiveProfileId(null)

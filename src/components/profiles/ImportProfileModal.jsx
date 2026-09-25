@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useVault } from '../../context/VaultContext'
 import { AVATARS, getAvatar } from '../avatars'
+import { markOnboardingComplete } from '../../lib/onboarding'
 import { createSecureStorage } from '../../lib/secureStorage'
 import { decryptExportFile, isValidExportFile } from '../../lib/vaultFile'
 import { CheckCircleIcon, UploadIcon } from '../icons'
@@ -105,6 +106,7 @@ export default function ImportProfileModal({ onClose, initialFile }) {
         check,
       })
       await createSecureStorage(key, newProfileId).setItem('debts', debts)
+      markOnboardingComplete(newProfileId)
       loginAs(newProfileId, key)
     } catch {
       setError('Clave incorrecta o archivo dañado.')

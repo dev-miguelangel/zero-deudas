@@ -7,7 +7,7 @@ const TABS = [
   { id: 'glosario', label: 'Conceptos y glosario' },
 ]
 
-export default function Learn() {
+export default function Learn({ onNavigate }) {
   const [activeTab, setActiveTab] = useState('tour')
 
   return (
@@ -31,7 +31,7 @@ export default function Learn() {
       </div>
 
       <div className="mt-4">
-        {activeTab === 'tour' ? <AppTourTab /> : <GlossaryTab />}
+        {activeTab === 'tour' ? <AppTourTab onNavigate={onNavigate} /> : <GlossaryTab />}
       </div>
     </div>
   )

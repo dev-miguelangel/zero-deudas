@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   BoltIcon,
   CheckCircleIcon,
@@ -9,6 +10,8 @@ import {
   TargetIcon,
   UploadIcon,
 } from '../icons'
+import TourModal from '../onboarding/TourModal'
+import { planSteps, welcomeSteps } from '../onboarding/tourSteps'
 import AppMockupCarousel from './AppMockupCarousel'
 
 const COMPARISON = [
@@ -78,7 +81,14 @@ function Rise({ delay = 0, className = '', children }) {
   )
 }
 
-export default function AppTourTab() {
+export default function AppTourTab({ onNavigate }) {
+  const [showTour, setShowTour] = useState(false)
+  const navigate = onNavigate ?? (() => {})
+  const replaySteps = [
+    ...welcomeSteps(() => navigate('deudas')),
+    ...planSteps(() => navigate('amortizacion')),
+  ]
+
   return (
     <div className="space-y-6">
       <style>{`
@@ -99,7 +109,7 @@ export default function AppTourTab() {
               <span className="absolute inset-0 animate-ping rounded-full bg-slate-900/40" />
               <BoltIcon className="relative h-5 w-5" />
             </span>
-            <div>
+            <div className="flex-1">
               <h2 className="text-lg font-semibold text-slate-900">
                 Esto no es una planilla de cálculo
               </h2>
@@ -108,9 +118,18 @@ export default function AppTourTab() {
                 números.
               </p>
             </div>
+            <button
+              type="button"
+              onClick={() => setShowTour(true)}
+              className="shrink-0 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-slate-400"
+            >
+              Ver tutorial
+            </button>
           </div>
         </Rise>
       </section>
+
+      {showTour && <TourModal steps={replaySteps} onClose={() => setShowTour(false)} />}
 
       <section className="rounded-lg border border-slate-200 p-6">
         <h3 className="text-center text-sm font-semibold uppercase tracking-wide text-slate-400">
