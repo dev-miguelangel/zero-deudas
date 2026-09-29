@@ -1,6 +1,7 @@
 import { useState } from 'react'
+import { useIndicadores } from '../../context/IndicadoresContext'
 import { DEBT_TYPES, computeDerivedFields, validateDebt } from '../../domain/debts'
-import { formatRate } from '../../lib/format'
+import { formatCurrency, formatRate } from '../../lib/format'
 import { debtTypeIcon } from '../debtTypes'
 import HelpTip from '../HelpTip'
 import NumericInput from '../NumericInput'
@@ -28,6 +29,16 @@ function formatNumber(value, decimals = 2) {
   return value.toLocaleString('es-CL', { maximumFractionDigits: decimals })
 }
 
+// Los créditos hipotecarios se guardan siempre en UF; si el usuario los
+// ingresa en CLP, los montos se convierten con la UF del día.
+const MONTO_FIELDS = ['montoOriginal', 'valorCuota']
+
+function convertAmount(value, factor, decimals) {
+  if (value === '' || !(Number(value) > 0)) return value
+  const scale = 10 ** decimals
+  return String(Math.round(Number(value) * factor * scale) / scale)
+}
+
 function SectionTitle({ children }) {
   return (
     <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{children}</p>
@@ -49,12 +60,32 @@ export default function DebtFormModal({ initialValue, onClose, onSubmit }) {
       : emptyForm,
   )
   const [errors, setErrors] = useState({})
+  const [unidadIngreso, setUnidadIngreso] = useState('UF')
+  const { data: indicadores } = useIndicadores()
+  const ufValue = indicadores?.uf?.valor ?? null
 
   const esHipotecario = form.tipo === 'CH'
-  const unidad = esHipotecario ? 'UF' : 'CLP'
+  const ingresoEnCLP = esHipotecario && unidadIngreso === 'CLP'
+  const unidad = esHipotecario ? unidadIngreso : 'CLP'
 
   function handleChange(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }))
+  }
+
+  function handleTipoChange(tipo) {
+    handleChange('tipo', tipo)
+    if (tipo !== 'CH') setUnidadIngreso('UF')
+  }
+
+  function handleUnidadChange(nuevaUnidad) {
+    if (nuevaUnidad === unidadIngreso || !ufValue) return
+    const [factor, decimals] = nuevaUnidad === 'CLP' ? [ufValue, 0] : [1 / ufValue, 4]
+    setForm((prev) => {
+      const next = { ...prev }
+      for (const field of MONTO_FIELDS) next[field] = convertAmount(prev[field], factor, decimals)
+      return next
+    })
+    setUnidadIngreso(nuevaUnidad)
   }
 
   function handleSubmit(event) {
@@ -62,6 +93,12 @@ export default function DebtFormModal({ initialValue, onClose, onSubmit }) {
     const validationErrors = validateDebt(form)
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors)
+      return
+    }
+    if (ingresoEnCLP) {
+      const enUF = { ...form }
+      for (const field of MONTO_FIELDS) enUF[field] = convertAmount(form[field], 1 / ufValue, 4)
+      onSubmit(enUF)
       return
     }
     onSubmit(form)
@@ -91,7 +128,7 @@ export default function DebtFormModal({ initialValue, onClose, onSubmit }) {
                         <button
                           key={type.id}
                           type="button"
-                          onClick={() => handleChange('tipo', type.id)}
+                          onClick={() => handleTipoChange(type.id)}
                           className={`flex flex-col items-center gap-1 rounded-md border px-2 py-2 text-xs font-medium ${
                             form.tipo === type.id
                               ? 'border-slate-900 bg-slate-50 text-slate-900'
@@ -105,10 +142,31 @@ export default function DebtFormModal({ initialValue, onClose, onSubmit }) {
                     })}
                   </div>
                   {esHipotecario && (
-                    <p className="mt-1 text-xs text-slate-500">
-                      El monto original y la cuota se ingresan en UF, y se convierten a pesos
-                      con el valor de la UF del día.
-                    </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <span className="text-xs text-slate-500">Ingresar montos en</span>
+                      <div className="inline-flex rounded-md border border-slate-300 p-0.5">
+                        {['UF', 'CLP'].map((u) => (
+                          <button
+                            key={u}
+                            type="button"
+                            onClick={() => handleUnidadChange(u)}
+                            disabled={u === 'CLP' && !ufValue}
+                            className={`rounded px-3 py-1 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${
+                              unidadIngreso === u ? 'bg-slate-900 text-white' : 'text-slate-600'
+                            }`}
+                          >
+                            {u}
+                          </button>
+                        ))}
+                      </div>
+                      <p className="w-full text-xs text-slate-500">
+                        {ingresoEnCLP
+                          ? `Los montos se convertirán y guardarán en UF usando la UF del día (${formatCurrency(ufValue)}).`
+                          : ufValue
+                            ? 'El crédito se guarda en UF.'
+                            : 'El crédito se guarda en UF. Para ingresar en CLP hace falta el valor de la UF del día, que no se pudo cargar.'}
+                      </p>
+                    </div>
                   )}
                   {errors.tipo && <p className="mt-1 text-xs text-red-600">{errors.tipo}</p>}
                 </div>

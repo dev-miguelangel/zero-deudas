@@ -5,11 +5,11 @@ import { estimateBalanceAfterInstallments } from './rateEstimator'
  */
 
 export const DEBT_TYPES = [
-  { id: 'CC', label: 'Crédito de consumo' },
-  { id: 'CH', label: 'Crédito hipotecario' },
   { id: 'TC', label: 'Tarjeta de crédito' },
+  { id: 'CC', label: 'Crédito de consumo' },
   { id: 'LC', label: 'Línea de crédito' },
   { id: 'OT', label: 'Otras transacciones' },
+  { id: 'CH', label: 'Crédito hipotecario' },
 ]
 
 /**
